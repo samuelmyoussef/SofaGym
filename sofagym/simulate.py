@@ -15,7 +15,7 @@ import SofaRuntime
 import importlib
 
 
-def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
+def init_simulation(config, _startCmd=None, mode="simu_and_visu", viewer=None):
     """Function to create scene and initialize all variables.
 
     Parameters:
@@ -46,7 +46,7 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
     # Load the scene
     root = Sofa.Core.Node("root")
     SofaRuntime.importPlugin("Sofa.Component")
-    create_scene(root,  config, mode = mode)
+    create_scene(root, config, mode = mode, viewer=viewer)
     Sofa.Simulation.init(root)
 
     # Realise action from history

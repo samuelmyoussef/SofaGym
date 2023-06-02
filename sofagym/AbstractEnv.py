@@ -20,6 +20,13 @@ import splib3
 from sofagym.viewer import Viewer
 from sofagym.rpc_server import start_server, add_new_step, get_result, clean_registry, close_scene
 
+import Sofa
+from sofagym.rpc_server import get_position
+from sofagym.simulate import init_simulation, step_simulation
+import importlib
+
+from vedo import Plotter
+
 
 class AbstractEnv(gym.Env):
     """Use Sofa scene with a Gym interface.
@@ -143,22 +150,26 @@ class AbstractEnv(gym.Env):
         -------
             None.
         """
+        self.scene = self.config['scene']
+        self.pos = None
+        self._setPos = importlib.import_module("sofagym.envs." + self.scene + "." + self.scene + "Toolbox").setPos        
 
         self.goalList = None
         self.goal = None
         self.past_actions = []
 
-        
         self.num_envs = 40
 
         self.np_random = None
 
         self.seed(self.config['seed'])
 
-        self.viewer = None
+        display_size = self.config["display_size"]
+        self.viewer = Plotter(interactive=False, size=display_size)
+        self.rendering = 0
+
         self.automatic_rendering_callback = None
         
-
         self.timer = 0
         self.timeout = self.config["timeout"]
 
@@ -216,7 +227,7 @@ class AbstractEnv(gym.Env):
         elif isinstance(action, np.float64):
             action = float(action)
         elif isinstance(action, tuple):
-             action = self._formatactionTuple(action)
+            action = self._formatactionTuple(action)
         elif isinstance(action, dict):
             action = self._formatactionDict(action)
         return action
@@ -373,7 +384,7 @@ class AbstractEnv(gym.Env):
 
         """
         self.clean()
-        self.viewer = None
+        self.viewer.clear()
 
         self.seed(self.config['seed'])
 
@@ -388,6 +399,7 @@ class AbstractEnv(gym.Env):
 
         self.timer = 0
         self.past_actions = []
+        self.rendering = 0
         
         return 
 
@@ -407,17 +419,19 @@ class AbstractEnv(gym.Env):
             None.
         """
         if self.config['render'] != 0:
-            # Define the viewer at the first run of render.
-            if not self.viewer:
-                display_size = self.config["display_size"]  # Sim display
-                if 'zFar' in self.config:
-                    zFar = self.config['zFar']
-                else:
-                    zFar = 0
-                self.viewer = Viewer(self, display_size, zFar=zFar, save_path=self.config["save_path_image"])
+            if not self.rendering:
+                self.root = init_simulation(self.config, mode = 'visu', viewer=self.viewer)
+                self.frame = 0
+                self.rendering = 1
+                
+            self.pos = get_position(self.past_actions)['position']
+            self.frame += 1
 
-            # Use the viewer to display the environment.
-            self.viewer.render()
+            for pos in self.pos:
+                self._setPos(self.root, pos)
+
+            Sofa.Simulation.animate(self.root, 0.0001)
+
         else:
             print(">> No rendering")
 
@@ -460,6 +474,7 @@ class AbstractEnv(gym.Env):
         """
         if self.viewer is not None:
             self.viewer.close()
+            self.viewer.close_window()
 
         close_scene()
         print("All clients are closed. Bye Bye.")
