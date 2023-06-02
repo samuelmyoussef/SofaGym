@@ -17,14 +17,37 @@ from TrunkToolbox import rewardShaper, goalSetter
 import os
 path = os.path.dirname(os.path.abspath(__file__))+'/mesh/'
 
+from numpy import zeros, array
+from numpy.random import uniform
+from numpy.linalg import norm
+import Sofa
+from SSD.SOFA import UserAPI, Database
+from vedo import Mesh, Plotter
 
-def add_goal_node(root):
+
+
+
+def add_goal_node(root, pos):
+    '''
     goal = root.addChild("Goal")
     goal.addObject('VisualStyle', displayFlags="showCollisionModels")
-    goal_mo = goal.addObject('MechanicalObject', name='GoalMO', showObject=True, drawMode="1", showObjectScale=3,
+    goal.addObject('MechanicalObject', name='GoalMO', showObject=True, drawMode="1", showObjectScale=3,
                              showColor=[0, 1, 0, 1], position=[0.0, -100.0, 100.0])
-    return goal_mo
+    '''
 
+
+    #goal.addChild('visual')
+    #goal.visual.addObject('MeshObjLoader', name='Loader', filename='mesh/ball.obj')
+    #goal.visual.addObject('OglModel', name='BallOGL', src='@Loader')
+    #goal.visual.addObject('RigidMapping', input='@../GoalMO', output='@BallOGL')
+
+    goal = root.addChild("Goal")
+    goal.addObject('MechanicalObject', name='GoalMO', showObject=True, drawMode="1", position=[pos[0], pos[1], pos[2]], template='Vec3d')
+    goal.addObject('MeshObjLoader', name='loader', filename='mesh/ball.obj', scale3d=[3, 3, 3], translation=[pos[0], pos[1], pos[2]], triangulate=True)
+    goal.addObject('OglModel', name='GoalOgl', src='@loader', color=[0, 1, 0, 1])
+    #goal.addObject('RigidMapping', input='@GoalMO', output='@GoalOgl')
+    
+    return goal
 
 def effectorTarget(parentNode, position=[0., 0., 200]):
     target = parentNode.addChild("Target")
@@ -124,8 +147,8 @@ class Trunk(SofaObject):
 
     def addVisualModel(self, color=[1., 1., 1., 1.]):
         trunkVisu = self.node.addChild('VisualModel')
-        trunkVisu.addObject('MeshSTLLoader', filename=path+"trunk.stl")
-        trunkVisu.addObject('OglModel', template='Vec3d', color=color)
+        trunkVisu.addObject('MeshSTLLoader', name='trunkSTL', filename=path+"trunk.stl")
+        trunkVisu.addObject('OglModel', name= 'trunkOgl', template='Vec3d', color=color)
         trunkVisu.addObject('BarycentricMapping')
 
     def addCollisionModel(self, selfCollision=False):
@@ -150,9 +173,56 @@ class Trunk(SofaObject):
         effectors.addObject("BarycentricMapping", mapForces=False, mapMasses=False)
 
 
+class TrunkVis(Sofa.Core.Controller):
+    def __init__(self, viewer, root, env, *args, **kwargs):
+        # These are needed (and the normal way to override from a python class)
+        Sofa.Core.Controller.__init__(self, *args, **kwargs)
+        self.root = root
+        self.env = env
+        self.goal = self.root.Goal
+
+        self.vedo_viewer = viewer
+        self.camera = self.vedo_viewer.camera
+        self.camera.SetPosition(500, 450, -500)
+        
+        self.vedo_trunk_mesh = Mesh()
+        self.vedo_goal_mesh = Mesh()
+
+    def onSimulationInitDoneEvent(self, _):
+        # Init the Vedo Mesh
+        trunk_positions = self.env.node.VisualModel.getObject('trunkOgl').position.value
+        trunk_triangles = self.env.node.VisualModel.getObject('trunkOgl').triangles.value
+
+        self.goal = self.root.Goal
+        #print("----------------GOAL POS:", self.goal.loader.translation.value)
+        goal_positions = self.goal.getObject('GoalOgl').position.value
+        goal_quads = self.goal.getObject('GoalOgl').triangles.value
+
+        self.vedo_trunk_mesh = Mesh(inputobj=[trunk_positions, trunk_triangles], c='blue5').wireframe(False).linewidth(1.5)
+        self.vedo_goal_mesh = Mesh(inputobj=[goal_positions, goal_quads], c='green5').wireframe(False).linewidth(1.5)
+        actors = [self.vedo_trunk_mesh, self.vedo_goal_mesh]
+
+        # Init the Vedo Viewer
+        self.vedo_viewer.add(actors)
+        #self.vedo_viewer.show(actors, mode=0)
+
+    def onAnimateEndEvent(self, _):
+        # Update the Vedo Mesh (can be updated on place)
+        trunk_positions = self.env.node.VisualModel.getObject('trunkOgl').position.value
+        self.vedo_trunk_mesh.points(trunk_positions)
+        
+        goal_positions = self.goal.getObject('GoalOgl').position.value
+        self.vedo_goal_mesh.points(goal_positions)
+
+        # Update the Vedo Viewer
+        self.vedo_viewer.render()
+
+
+
+
 def createScene(rootNode, config={"source": [-600.0, -25, 100],
                                   "target": [30, -25, 100],
-                                  "goalPos": [0, 0, 0]}, mode='simu_and_visu'):
+                                  "goalPos": [0, 0, 0]}, mode='simu_and_visu', viewer=None):
 
     # Chose the mode: visualization or computations (or both)
     visu, simu = False, False
@@ -212,13 +282,16 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
     trunk = Trunk(simulation, inverseMode=False)
     rootNode.trunk = trunk
 
-    if visu:
-        trunk.addVisualModel(color=[1., 1., 1., 0.8])
     trunk.fixExtremity()
 
-    goal_mo = add_goal_node(rootNode)
+    goal = add_goal_node(rootNode, config["goalPos"])
 
     rootNode.addObject(rewardShaper(name="Reward", rootNode=rootNode, goalPos=config['goalPos']))
-    rootNode.addObject(goalSetter(name="GoalSetter", goalMO=goal_mo, goalPos=config['goalPos']))
+    rootNode.addObject(goalSetter(name="GoalSetter", goalMO=goal.loader, goalPos=config['goalPos']))
+
+    if visu:
+        trunk.addVisualModel(color=[1., 1., 1., 0.8])
+
+        t = rootNode.addObject(TrunkVis(viewer=viewer, root=rootNode, env=trunk, name="Trunk Visualization") )
 
     return rootNode
