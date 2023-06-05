@@ -26,7 +26,7 @@ def addRigidObject(node, filename, collisionFilename=None, position=[0, 0, 0, 0,
 
     visu = object.addChild('Visu')
     visu.addObject('MeshOBJLoader', name='loader', filename=filename, scale3d=scale)
-    visu.addObject('OglModel', src='@loader',  color=color if textureFilename == '' else '')
+    visu.addObject('OglModel', name='objOgl', src='@loader',  color=color if textureFilename == '' else '')
     visu.addObject('RigidMapping')
 
     object.addObject('GenerateRigidMass', name='mass', density=density, src=visu.loader.getLinkPath())
