@@ -1,4 +1,4 @@
-# Trunk
+# CartStem
 <center>
     <img src="../../../images/trunk-v0.png" width="500"/>
 
@@ -6,7 +6,7 @@
   <table>
     <tr>
       <td><b>Action Space</b></td>
-      <td>Discrete(16)</td>
+      <td>Discrete (16)</td>
     </tr>
     <tr>
       <td><b>Observation Space</b></td>
@@ -76,7 +76,7 @@ The episode ends if any one of the following occurs:
 - Termination: 
   1. The trunk's tip reaches the goal.
 - Truncation (when using the time_limit wrapper): 
-  1. The length of the episode reaches the limit specified using the `TimeLimit` wrapper.
+    1. The length of the episode reaches the limit specified using the `TimeLimit` wrapper.
 
 
 ## Version History
