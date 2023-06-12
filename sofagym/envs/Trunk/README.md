@@ -1,7 +1,8 @@
 # Trunk
+
+
 <center>
     <img src="../../../images/trunk-v0.png" width="500"/>
-
 
   <table>
     <tr>
@@ -25,9 +26,9 @@ The elephant trunk manipulator is an articulated tendon-driven soft manipulator 
 
 
 ## Action Space
-The  trunk  is  controlled  by  eight  cables  that can be contracted or extended by one unit.  There are therefore 16 possible actions. The action space presented here is discrete but could easily be ex-tended to become continuous.
+The  trunk  is  controlled  by  eight  cables  that can be contracted or extended by one unit.  There are therefore `16` possible actions. The action space presented here is discrete but could easily be ex-tended to become continuous.
 
-The action shape is `(1,)` in the range `{0, 15}`. Actions from 0 to 7 extend the appropriate cable by +1 displacement, while actions from 8 to 15 contract it by -1 displacement unit.
+The action shape is `(1,)` in the range `{0, 15}`. Actions from 0 to 7 extend the appropriate cable by `+1` displacement, while actions from 8 to 15 contract it by -1 displacement unit.
 
 - 0: cable 0, extension
 - 1: cable 1, extension
@@ -48,11 +49,11 @@ The action shape is `(1,)` in the range `{0, 15}`. Actions from 0 to 7 extend th
 
 
 ## Observation Space
-The observation is a ndarray with shape (66,) with the values between -1 and 1 corresponding to 
+The observation is a ndarray with shape `(66,)` with the values between `-1` and `1` corresponding to ....
 
 
 ## Rewards
-The reward is the normalized value of the difference between the previous distance and the current distance of the tip from the goal. It has a value between 0 and 1 for each step.
+The reward is the normalized value of the difference between the previous and current euclidean distance of the tip from the goal. It has a value between `0` and `1` for each step.
 
 
 ## Starting State

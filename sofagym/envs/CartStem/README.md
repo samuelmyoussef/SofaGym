@@ -1,62 +1,85 @@
 # CartStem
-<center>
-    <img src="../../../images/trunk-v0.png" width="500"/>
 
+
+<center>
+    <img src="../../../images/cartstem-v0.png" width="500"/>
 
   <table>
     <tr>
       <td><b>Action Space</b></td>
-      <td>Discrete (16)</td>
+      <td>Discrete(2)</td>
     </tr>
     <tr>
       <td><b>Observation Space</b></td>
-      <td>Box([-1]*66, [1]*66, (66,), float32)</td>
+      <td>Box([-100]*4, [100]*4, (4,), float32)</td>
     </tr>
     <tr>
       <td><b>Import</b></td>
-      <td>gym.make("trunk-v0")</td>
+      <td>gym.make("cartstem-v0")</td>
     </tr>
   </table>
 </center>
 
 
 ## Description
-The elephant trunk manipulator is an articulated tendon-driven soft manipulator that is actuated using cables. The aim of the Trunk environment is to bring the trunk’s tip to a certain position within its workspace.
+This environment is a soft equivalent to the cart-pole example, where the rigid pole is replaced by a stem which is flexible beam with a sphere at its end. This flexible pendulum is unactuated and attached to the cart, which moves on a frictionless surface. The goal is to balance the stem and the sphere upright by moving the cart left and right.
 
 
 ## Action Space
-The  trunk  is  controlled  by  eight  cables  that can be contracted or extended by one unit.  There are therefore 16 possible actions. The action space presented here is discrete but could easily be ex-tended to become continuous.
+The action shape is `(1,)` which can take values `{0, 1}` corresponding to the direction in which the cart is pushed by applying a fixed force to it.
 
-The action shape is `(1,)` in the range `{0, 15}`. Actions from 0 to 7 extend the appropriate cable by +1 displacement, while actions from 8 to 15 contract it by -1 displacement unit.
-
-- 0: cable 0, extension
-- 1: cable 1, extension
-- 2: cable 2, extension
-- 3: cable 3, extension
-- 4: cable 4, extension
-- 5: cable 5, extension
-- 6: cable 6, extension
-- 7: cable 7, extension
-- 8: cable 8, contraction
-- 9: cable 9, contraction
-- 10: cable 10, contraction
-- 11: cable 11, contraction
-- 12: cable 12, contraction
-- 13: cable 13, contraction
-- 14: cable 14, contraction
-- 15: cable 15, contraction
-
+- 0: Push cart to the right
+- 1: Push cart to the left
 
 ## Observation Space
-The observation is a ndarray with shape (66,) with the values between -1 and 1 corresponding to 
+The observation is a ndarray with shape `(4,)` with the values between `-100` and `100` corresponding to the x positions and velocities of the cart and the sphere.
+
+<center>
+  <table>
+    <tr>
+      <th>Num</th>
+      <th>Observation</th>
+      <th>Min</th>
+      <th>Max</th>
+    </tr>
+    <tr>
+      <td>0</td>
+      <td>Cart X Position</td>
+      <td>-100</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>Sphere X Position</td>
+      <td>-100</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Cart Velocity</td>
+      <td>-100</td>
+      <td>100</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Sphere Velocity</td>
+      <td>-100</td>
+      <td>100</td>
+    </tr>
+  </table>
+</center>
 
 
 ## Rewards
-The reward is the normalized value of the difference between the previous distance and the current distance of the tip from the goal. It has a value between 0 and 1 for each step.
+The reward is the absolute difference in the x position between the cart and the sphere.
+
+$$
+r = abs(cart\_position - sphere\_position)
+$$
 
 
 ## Starting State
-The episode starts with the trunk in its initial position and the goal is initialized to a random position within the trunk's workspace.
+The episode starts with the cart in its initial position and the pendulum in the upright position.
 
 
 ## Arguments
@@ -67,14 +90,14 @@ import gym
 import sofagym
 from sofagym.envs import *
 
-gym.make('trunk-v0')
+gym.make('cartstem-v0')
 ```
 
 
 ## Episode End
 The episode ends if any one of the following occurs:
 - Termination: 
-  1. The trunk's tip reaches the goal.
+  1. ....
 - Truncation (when using the time_limit wrapper): 
     1. The length of the episode reaches the limit specified using the `TimeLimit` wrapper.
 
