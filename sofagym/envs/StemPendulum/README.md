@@ -25,7 +25,7 @@ This environmnet is similar to the classic inverted pendulum problem in control 
 
 
 ## Action Space
-The action shape is `(1,)` with values between `-1` and `1` corresponding to the torque applued to the pendulum to make it swing.
+The action shape is `(1,)` with values between `-1` and `1` corresponding to the torque applied to the pendulum to make it swing.
 
 
 ## Observation Space
