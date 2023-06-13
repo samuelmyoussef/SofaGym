@@ -1,6 +1,6 @@
 # TrunkCup
 <center>
-    <img src="../../../images/trunk-v0.png" width="500"/>
+    <img src="../../../images/trunkcup-v0.png" width="500"/>
 
 
   <table>
@@ -14,14 +14,14 @@
     </tr>
     <tr>
       <td><b>Import</b></td>
-      <td>gym.make("trunk-v0")</td>
+      <td>gym.make("trunkcup-v0")</td>
     </tr>
   </table>
 </center>
 
 
 ## Description
-The elephant trunk manipulator is an articulated tendon-driven soft manipulator that is actuated using cables. The aim of the Trunk environment is to bring the trunk’s tip to a certain position within its workspace.
+The elephant trunk manipulator is an articulated tendon-driven soft manipulator that is actuated using cables. The aim of the `TrunkCup` environment is to manipulate a cup using the trunk to get the cup in a predefined position within the trunk's workspace.
 
 
 ## Action Space
@@ -48,15 +48,15 @@ The action shape is `(1,)` in the range `{0, 15}`. Actions from 0 to 7 extend th
 
 
 ## Observation Space
-The observation is a ndarray with shape (66,) with the values between -1 and 1 corresponding to 
+The observation is a ndarray with shape `(66,)` with the values between `-1` and `1` corresponding to ....
 
 
 ## Rewards
-The reward is the normalized value of the difference between the previous distance and the current distance of the tip from the goal. It has a value between 0 and 1 for each step.
+The reward is the normalized value of the difference between the previous distance and the current distance of ....
 
 
 ## Starting State
-The episode starts with the trunk in its initial position and the goal is initialized to a random position within the trunk's workspace.
+The episode starts with the trunk in its initial position holding the cup and the goal position is initialized to a random position within the trunk's workspace.
 
 
 ## Arguments
@@ -67,16 +67,16 @@ import gym
 import sofagym
 from sofagym.envs import *
 
-gym.make('trunk-v0')
+gym.make('trunkcup-v0')
 ```
 
 
 ## Episode End
 The episode ends if any one of the following occurs:
 - Termination: 
-  1. The trunk's tip reaches the goal.
+  1. The trunk successfully transports the cup to the specified position.
 - Truncation (when using the time_limit wrapper): 
-    1. The length of the episode reaches the limit specified using the `TimeLimit` wrapper.
+  1. The length of the episode reaches the limit specified using the `TimeLimit` wrapper.
 
 
 ## Version History

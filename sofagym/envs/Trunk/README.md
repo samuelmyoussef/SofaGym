@@ -22,13 +22,13 @@
 
 
 ## Description
-The elephant trunk manipulator is an articulated tendon-driven soft manipulator that is actuated using cables. The aim of the Trunk environment is to bring the trunk’s tip to a certain position within its workspace.
+The elephant trunk manipulator is an articulated tendon-driven soft manipulator that is actuated using cables. The aim of the `Trunk` environment is to bring the trunk’s tip to a certain position within its workspace.
 
 
 ## Action Space
 The  trunk  is  controlled  by  eight  cables  that can be contracted or extended by one unit.  There are therefore `16` possible actions. The action space presented here is discrete but could easily be ex-tended to become continuous.
 
-The action shape is `(1,)` in the range `{0, 15}`. Actions from 0 to 7 extend the appropriate cable by `+1` displacement, while actions from 8 to 15 contract it by -1 displacement unit.
+The action can take a value in the range `{0, 15}`. Actions from 0 to 7 extend the appropriate cable by `+1` displacement, while actions from 8 to 15 contract it by -1 displacement unit.
 
 - 0: cable 0, extension
 - 1: cable 1, extension

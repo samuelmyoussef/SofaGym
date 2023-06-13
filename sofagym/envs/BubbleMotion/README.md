@@ -26,7 +26,7 @@ The aim of the `bubblemotion` environment is to move the sphere bubble to the sp
 
 
 ## Action Space
-
+....
 
 An action is a ndarray with shape`(9,)` which can take values between `-1` and `1`. ....
 
@@ -62,7 +62,7 @@ gym.make('bubblemotion-v0')
 ## Episode End
 The episode ends if any one of the following occurs:
 - Termination: 
-  1. The bubble reaches the goal
+  1. The bubble reaches the goal.
 - Truncation (when using the time_limit wrapper): 
   1. The length of the episode reaches the limit specified using the `TimeLimit` wrapper.
 

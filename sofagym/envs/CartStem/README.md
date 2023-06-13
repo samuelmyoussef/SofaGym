@@ -26,7 +26,7 @@ This environment is a soft equivalent to the cart-pole example, where the rigid 
 
 
 ## Action Space
-The action shape is `(1,)` which can take values `{0, 1}` corresponding to the direction in which the cart is pushed by applying a fixed force to it.
+The action is discrete which can take values `{0, 1}` corresponding to the direction in which the cart is pushed by applying a fixed force to it.
 
 - 0: Push cart to the right
 - 1: Push cart to the left
@@ -99,7 +99,7 @@ The episode ends if any one of the following occurs:
 - Termination: 
   1. ....
 - Truncation (when using the time_limit wrapper): 
-    1. The length of the episode reaches the limit specified using the `TimeLimit` wrapper.
+  1. The length of the episode reaches the limit specified using the `TimeLimit` wrapper.
 
 
 ## Version History

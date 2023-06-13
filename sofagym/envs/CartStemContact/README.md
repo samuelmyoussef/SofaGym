@@ -118,7 +118,7 @@ The episode ends if any one of the following occurs:
 - Termination: 
   1. The sphere reaches the goal line.
 - Truncation (when using the time_limit wrapper): 
-    1. The length of the episode reaches the limit specified using the `TimeLimit` wrapper.
+  1. The length of the episode reaches the limit specified using the `TimeLimit` wrapper.
 
 
 ## Version History
