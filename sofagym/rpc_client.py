@@ -96,7 +96,7 @@ def do_animate(task, _getReward_, _getState_, _startCmd, _getPos):
                 "state": state,
                 "action": action,
                 "obs": obs}
-        filename = config['save_path_results'] + "/" + scene + str(history) + ".json"
+        filename = config['save_path_results'] + "/" + scene + ".json"
         with open(filename, 'w') as outfile:
             json.dump(data, outfile)
 
