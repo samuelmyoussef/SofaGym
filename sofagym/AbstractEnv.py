@@ -376,13 +376,15 @@ class AbstractEnv(gym.Env):
         self.viewer = None
 
         splib3.animation.animate.manager = None
-        if not self.goalList:
-            self.goalList = self.config["goalList"]
-
-        # Set a new random goal from the list
-        id_goal = self.np_random.choice(range(len(self.goalList)))
-        self.config.update({'goal_node': id_goal})
-        self.goal = self.goalList[id_goal]
+        
+        if self.config.get("goalList") is not None:
+            if not self.goalList:
+                self.goalList = self.config["goalList"]
+    
+            # Set a new random goal from the list
+            id_goal = self.np_random.choice(range(len(self.goalList)))
+            self.config.update({'goal_node': id_goal})
+            self.goal = self.goalList[id_goal]
 
         self.timer = 0
         self.past_actions = []
