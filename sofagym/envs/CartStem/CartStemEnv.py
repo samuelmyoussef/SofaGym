@@ -27,7 +27,6 @@ class CartStemEnv(AbstractEnv):
                       "deterministic": True,
                       "source": [0, -70, 10],
                       "target": [0, 0, 10],
-                      "goalList": [[7, 0, 20]],
                       "start_node": None,
                       "scale_factor": 10,
                       "dt": 0.01,
@@ -81,7 +80,6 @@ class CartStemEnv(AbstractEnv):
         super().reset()
 
         self.config.update({'init_x': -(self.config["max_move"]/8) + (self.config["max_move"]/4)*np.random.random()})
-        self.config.update({'goalPos': self.goal})
 
         obs = start_scene(self.config, self.nb_actions)
         

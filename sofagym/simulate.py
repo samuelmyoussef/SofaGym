@@ -62,7 +62,11 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
         print(">>   ... Done.")
 
     # Init Reward and GoalSetter
-    root.GoalSetter.update()
+    try:
+        GoalSetter = root.GoalSetter.update()
+    except:
+        GoalSetter = None
+    
     root.Reward.update()
 
     if 'time_before_start' in config:
@@ -71,7 +75,9 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
             Sofa.Simulation.animate(root, config["dt"])
         print(">>   ... Done.")
         # Update Reward and GoalSetter
-        root.GoalSetter.update()
+        if GoalSetter is not None:
+            GoalSetter.update()
+        
         root.Reward.update()
 
     return root
@@ -101,11 +107,12 @@ def step_simulation(root, config, action, _startCmd, _getPos, viewer=None):
             The positions of object(s) in the scene.
 
     """
-    goal = config['goalPos']
+    if config.get("goalPos") is not None:
+        goal = config['goalPos']
+        root.GoalSetter.set_mo_pos(goal)
+    
     render = config['render']
     surface_size = config['display_size']
-
-    root.GoalSetter.set_mo_pos(goal)
 
     # Create the command from action
     _startCmd(root, action, config["dt"]*(config["scale_factor"]-1))

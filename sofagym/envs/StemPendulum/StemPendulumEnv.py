@@ -28,7 +28,6 @@ class StemPendulumEnv(AbstractEnv):
                       "deterministic": True,
                       "source": [0, 0, 30],
                       "target": [0, 0, 0],
-                      "goalList": [[7, 0, 20]],
                       "start_node": None,
                       "scale_factor": 10,
                       "dt": 0.01,
@@ -78,9 +77,7 @@ class StemPendulumEnv(AbstractEnv):
         super().reset()
 
         self.count = 0
-        self.config.update({'goalPos': self.goal})
-        # obs = super().reset()
-        # return np.array(obs)
+
         obs = start_scene(self.config, self.nb_actions)
 
         return np.array(obs['observation'])
@@ -97,6 +94,3 @@ class StemPendulumEnv(AbstractEnv):
             list of the action available in the environment.
         """
         return self.action_space
-
-
-

@@ -385,6 +385,7 @@ class AbstractEnv(gym.Env):
             id_goal = self.np_random.choice(range(len(self.goalList)))
             self.config.update({'goal_node': id_goal})
             self.goal = self.goalList[id_goal]
+            self.config.update({'goalPos': self.goal})
 
         self.timer = 0
         self.past_actions = []

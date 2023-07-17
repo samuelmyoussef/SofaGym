@@ -74,7 +74,6 @@ class GripperEnv(AbstractEnv):
         """
         super().reset()
 
-        self.config.update({'goalPos': self.goal})
         obs = start_scene(self.config, self.nb_actions)
 
         return (np.array(obs['observation']))

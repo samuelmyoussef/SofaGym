@@ -144,17 +144,6 @@ def getState(rootNode):
     return state
 
 
-class goalSetter(Sofa.Core.Controller):
-    def __init__(self, *args, **kwargs):
-        Sofa.Core.Controller.__init__(self, *args, **kwargs)
-
-    def update(self):
-        pass
-
-    def set_mo_pos(self, goal):
-        pass
-
-
 def getReward(rootNode):
     reward, theta, max_angle = rootNode.Reward.getReward()
     done = (theta > max_angle) or (theta < -max_angle)

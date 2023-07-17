@@ -19,7 +19,6 @@ class CartPoleEnv(AbstractEnv):
                       "deterministic": True,
                       "source": [0, 0, 160],
                       "target": [0, 0, 0],
-                      "goalList": [[0]],
                       "start_node": None,
                       "scale_factor": 10,
                       "dt": 0.001,
@@ -77,8 +76,6 @@ class CartPoleEnv(AbstractEnv):
 
         """
         super().reset()
-
-        self.config.update({'goalPos': self.goal})
 
         obs = start_scene(self.config, self.nb_actions)
         

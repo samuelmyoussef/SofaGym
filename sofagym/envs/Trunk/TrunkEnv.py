@@ -74,7 +74,6 @@ class TrunkEnv(AbstractEnv):
         """
         super().reset()
 
-        self.config.update({'goalPos': self.goal})
         obs = start_scene(self.config, self.nb_actions)
 
         return np.array(obs['observation'])
@@ -91,5 +90,3 @@ class TrunkEnv(AbstractEnv):
             list of the action available in the environment.
         """
         return list(range(int(self.nb_actions)))
-
-

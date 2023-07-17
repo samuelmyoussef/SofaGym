@@ -81,9 +81,7 @@ class CatchTheObject(AbstractEnv):
         super().reset()
 
         self.count = 0
-        self.config.update({'goalPos': self.goal})
-        # obs = super().reset()
-        # return np.array(obs)
+        
         obs = start_scene(self.config, self.nb_actions)
 
         return np.array(obs['observation'])

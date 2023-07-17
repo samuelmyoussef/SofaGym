@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
-from CartPoleToolbox import applyAction, goalSetter, rewardShaper
+from CartPoleToolbox import applyAction, rewardShaper
 from sofagym.header import addVisu
 from splib3.animation import AnimationManagerController
 from stlib3.physics.rigid import Floor
@@ -51,7 +51,6 @@ def addRigidObject(node, filename, collisionFilename=None, position=[0, 0, 0, 0,
 def createScene(root, 
                 config={"source": [0, 0, 160],
                         "target": [0, 0, 0],
-                        "goalPos": None,
                         "seed": None,
                         "zFar":4000,
                         "init_x": 0,
@@ -166,5 +165,4 @@ def createScene(root,
 
     # SofaGym Env Components
     root.addObject(rewardShaper(name="Reward", rootNode=root, max_angle=config['max_angle'], pole_length=pole_length))
-    root.addObject(goalSetter(name="GoalSetter"))
     root.addObject(applyAction(name="applyAction", root=root))
