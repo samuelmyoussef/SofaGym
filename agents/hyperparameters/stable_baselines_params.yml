@@ -10,10 +10,9 @@
 #   - save_freq: Save a trained model checkpoint after every `save_freq` steps.
 #   - video_length: Max length of recorded videos.
 
-
 PPO:
   init_kwargs:
-    policy: 'MlpPolicy'
+    policy: "MlpPolicy"
     learning_rate: 0.0003
     n_steps: 100
     batch_size: 64
@@ -36,12 +35,10 @@ PPO:
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
-    save_freq: 100
-    video_length: 200
 
 A2C:
   init_kwargs:
-    policy: 'MlpPolicy'
+    policy: "MlpPolicy"
     learning_rate: 0.0007
     n_steps: 100
     gamma: 0.99
@@ -61,12 +58,10 @@ A2C:
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
-    save_freq: 100
-    video_length: 200
 
 DQN:
   init_kwargs:
-    policy: 'MlpPolicy'
+    policy: "MlpPolicy"
     learning_rate: 0.0001
     buffer_size: 1000000
     learning_starts: 100
@@ -90,12 +85,10 @@ DQN:
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
-    save_freq: 100
-    video_length: 200
 
 SAC:
   init_kwargs:
-    policy: 'MlpPolicy'
+    policy: "MlpPolicy"
     learning_rate: 0.0003
     buffer_size: 1000000
     learning_starts: 100
@@ -108,9 +101,9 @@ SAC:
     replay_buffer_class: null
     replay_buffer_kwargs: null
     optimize_memory_usage: False
-    ent_coef: 'auto'
+    ent_coef: "auto"
     target_update_interval: 1
-    target_entropy: 'auto'
+    target_entropy: "auto"
     use_sde: False
     sde_sample_freq: -1
     use_sde_at_warmup: False
@@ -121,12 +114,10 @@ SAC:
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
-    save_freq: 100
-    video_length: 200
 
 TD3:
   init_kwargs:
-    policy: 'MlpPolicy'
+    policy: "MlpPolicy"
     learning_rate: 0.001
     buffer_size: 1000000
     learning_starts: 100
@@ -149,12 +140,10 @@ TD3:
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
-    save_freq: 100
-    video_length: 200
 
 DDPG:
   init_kwargs:
-    policy: 'MlpPolicy'
+    policy: "MlpPolicy"
     learning_rate: 0.001
     buffer_size: 1000000
     learning_starts: 100
@@ -174,5 +163,3 @@ DDPG:
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
-    save_freq: 100
-    video_length: 200

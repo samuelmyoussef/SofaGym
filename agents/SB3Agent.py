@@ -2,7 +2,9 @@ import os
 import pickle
 import time
 import warnings
+import warnings
 from pathlib import Path
+from typing import Any, Callable, Dict
 from typing import Any, Callable, Dict
 
 import torch as th
@@ -17,26 +19,14 @@ from stable_baselines3 import A2C, DDPG, DQN, PPO, SAC, TD3
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.utils import constant_fn
-from stable_baselines3.common.vec_env import (SubprocVecEnv,
-                                              VecMonitor, VecVideoRecorder,
+from stable_baselines3.common.vec_env import (SubprocVecEnv, VecMonitor,
+                                              VecVideoRecorder,
                                               sync_envs_normalization)
 from stable_baselines3.common.vec_env.vec_normalize import VecNormalize
 
 
 # Adapted from RL Baselines3 Zoo
 def _preprocess_schedules(hyperparams: Dict[str, Any]) -> Dict[str, Any]:
-    """Preprocess scheduled training hyperparameters.
-    
-    Parameters
-    ----------
-    hyperparams : Dict[str, Any]
-        A dictionary containing the training algorithm hyperparameters.
-    
-    Returns
-    -------
-    hyperparams : Dict[str, Any]
-       The hyperparams dictionary after preprocessing the schedules.
-    """
     # Create schedules
     for key in ["learning_rate", "clip_range", "clip_range_vf", "delta_std"]:
         if key not in hyperparams or hyperparams[key] is None:
@@ -55,34 +45,19 @@ def _preprocess_schedules(hyperparams: Dict[str, Any]) -> Dict[str, Any]:
     return hyperparams
 
 def linear_schedule(initial_value: float) -> Callable[[float], float]:
-    """Create a schedule that computes the current hyperparameter value 
-    based on the remaining progress.
-    
-    Parameters
-    ----------
-    initial_value : float
-        The initial hyperparameter value.
-    
-    Returns
-    -------
-    func : Callable[[float], float]
-        A callable object, which is a schedule function that takes a single argument 
-        `progress_remaining` and returns a float value representing the current
-        hyperparameter value.
+    """
+    Linear learning rate schedule.
+
+    :param initial_value: Initial learning rate.
+    :return: schedule that computes
+      current learning rate depending on remaining progress
     """
     def func(progress_remaining: float) -> float:
-        """Calculate the current hyperparameter value based on the remaining progress.
-        
-        Parameters
-        ----------
-        progress_remaining: float
-            The remaining progress of the training task, ranging from 
-            1 (beginning) to 0 (completed).
-        
-        Returns
-        -------
-        float
-            the current hyperparameter value.
+        """
+        Progress will decrease from 1 (beginning) to 0.
+
+        :param progress_remaining:
+        :return: current learning rate
         """
         return progress_remaining * initial_value
 
@@ -228,7 +203,7 @@ class SB3Agent(SofaBaseAgent):
             self.init_kwargs['policy_kwargs'] = eval(self.init_kwargs['policy_kwargs'])
         if self.init_kwargs.get('train_freq'):
             self.init_kwargs['train_freq'] = eval(self.init_kwargs['train_freq'])
-
+        
         self.init_kwargs = _preprocess_schedules(self.init_kwargs)
 
         self.fit_kwargs = self.params['fit_kwargs']
@@ -252,124 +227,102 @@ class SB3Agent(SofaBaseAgent):
 
         self.env = self.env_wrap(self.n_envs, normalize=True)
 
-        if not self.model_timestep:
-            self.model = self.algo(env=self.env, seed=self.seed,
-                                   verbose=1, tensorboard_log=self.log_dir,
-                                   **self.init_kwargs)
+        checkpoint_path = f"{self.checkpoints_dir}/latest"
+        if not os.path.exists(checkpoint_path + ".zip"):
+            self.model = self.algo(env=self.env, seed=self.seed, verbose=1, tensorboard_log=self.log_dir, **self.init_kwargs)
         else:
-            checkpoint_path = f"{self.checkpoints_dir}/{self.model_timestep}"
             self.model = self.algo.load(checkpoint_path, self.env, tensorboard_log=self.log_dir)
 
-    def fit(self, total_timesteps=None):
-        """Train the model.
-        
-        Parameters
-        ----------
-        total_timesteps: int, default=None
-            The number of total_timesteps to train the model.
-        
-        Returns
-        -------
-        None.
-        """
+    def fit(self, epochs, total_timesteps=None, last_epoch=None, last_timestep=None):
         if total_timesteps is None:
             total_timesteps = self.fit_kwargs['total_timesteps']
 
-        save_freq = max(self.fit_kwargs['save_freq'] // self.n_envs, 1)
+        if last_epoch is None:
+            last_epoch = 0
+            last_timestep = 0
+
         eval_freq = max(self.fit_kwargs['eval_freq'] // self.n_envs, 1)
         n_eval_episodes = self.fit_kwargs['n_eval_episodes']
-
-        save_callback = SaveCallback(save_freq=save_freq,
-                                           save_path=self.checkpoints_dir,
-                                           save_replay_buffer=True, save_vecnormalize=True,
-                                           verbose=2)
-        save_normalization = SaveBestNormalizeCallback(save_path=self.checkpoints_dir, verbose=2)
-        video_record_callback = VideoRecordCallback(self.video_dir, self.video_length, self.log_dir, verbose=2)
-        eval_callback = EvalCallback(self.test_env, best_model_save_path=self.checkpoints_dir,
-                                     log_path=self.log_dir, eval_freq=eval_freq,
-                                     n_eval_episodes=n_eval_episodes, deterministic=True,
-                                     callback_on_new_best=save_normalization,
-                                     callback_after_eval=video_record_callback,
-                                     verbose=1,
-                                     render=False)
+        callback = EvalCallback(self.test_env, best_model_save_path=self.checkpoints_dir,
+                                log_path=self.log_dir, eval_freq=eval_freq,
+                                n_eval_episodes=n_eval_episodes, deterministic=True,
+                                render=False)
 
         print("\n-------------------------------")
         print(">>>    Start")
         print("-------------------------------\n")
         start_time = time.time()
 
-        print("\n-------------------------------")
-        print(">>>    Start training")
-        print("[INFO]  >>    time: ", sec_to_hours(time.time()-start_time))
-        print("[INFO]  >>    scene: ", self.env_id)
-        print("[INFO]  >>    algo: ", self.algo_name)
-        print("[INFO]  >>    seed: ", self.seed)
-        print("-------------------------------\n")
+        for epoch in range(epochs):
+            current_epoch = (epoch+1)
+            current_total_epoch = current_epoch + last_epoch
+            try:
+                print("\n-------------------------------")
+                print(">>>    Start training epoch n°", current_total_epoch)
+                print("[INFO]  >>    time: ", sec_to_hours(time.time()-start_time))
+                print("[INFO]  >>    scene: ", self.env_id)
+                print("[INFO]  >>    algo: ", self.algo_name)
+                print("[INFO]  >>    seed: ", self.seed)
+                print("-------------------------------\n")
 
-        self.model.learn(total_timesteps=total_timesteps, reset_num_timesteps=False,
-                         progress_bar=True, log_interval=1, tb_log_name="log",
-                         callback=[eval_callback, save_callback])
-
+                self.model.learn(total_timesteps=total_timesteps, reset_num_timesteps=False, progress_bar=True, log_interval=1, tb_log_name="log", callback=callback)
+                self.save(current_epoch, total_timesteps, current_total_epoch, last_timestep)
+            except:
+               print("[ERROR]  >> The simulation failed. Restart from previous id.")
+               
         print(">>   End.")
         print("[INFO]  >>    time: ", sec_to_hours(time.time()-start_time))
 
+    def fit_continue(self, epochs, total_timesteps=None):
+        last_timestep = self.params['model_params']['last_timestep']
+        last_epoch = self.params['model_params']['last_epoch']
+
+        print(f">>>    Continue model training from timestep: {last_timestep}")
+        self.fit(epochs, total_timesteps, last_epoch, last_timestep)
+    
     def eval(self, n_episodes, **kwargs):
-        """Evaluate the trained model's performance.
-        
-        Parameters
-        ----------
-        n_episodes: int
-            The number of evaluation episodes for the model.
-        
-        Returns
-        -------
-        None.
-        """
         model_timestep = kwargs.get('model_timestep', 'best_model')
         render = kwargs.get('render', False)
         record = kwargs.get('record', False)
 
-        checkpoint_path = f"{self.checkpoints_dir}/{model_timestep}"
-        checkpoint_vecnormalize_path = f"{self.checkpoints_dir}/vecnormalize_{model_timestep}.pkl"
+        if render:
+            config = {"render": 1}
+        else:
+            config = {"render": 0}
+            if record:
+                record = False
+                warnings.warn("Video recording not possible if rendering is off, record set to False", UserWarning)
         
-        eval_env = SubprocVecEnv([make_env(self.env_id, 0, self.seed, self.max_episode_steps, config={"render": 1})])
-        eval_env = VecNormalize.load(checkpoint_vecnormalize_path, eval_env)
+        eval_env = SubprocVecEnv([make_env(self.env_id, 0, self.seed*10, self.max_episode_steps, config=config)])
+        eval_env = VecNormalize.load(self.stats_path, eval_env)
         eval_env.training = False
         eval_env.norm_reward = False
         eval_env = VecMonitor(eval_env, self.log_dir)
-        
-        eval_model = self.algo.load(checkpoint_path, eval_env, tensorboard_log=self.log_dir)
+
+        if record:
+            eval_env = VecVideoRecorder(eval_env, self.video_dir,
+                                        record_video_trigger=lambda x: x == 0, video_length=self.max_episode_steps,
+                                        name_prefix=self.model_name)
+            
+        checkpoint_path = f"{self.checkpoints_dir}/{model_timestep}"
+        test_model = self.algo.load(checkpoint_path, eval_env, tensorboard_log=self.log_dir)
+
+        if test_model.get_vec_normalize_env() is not None:
+            try:
+                sync_envs_normalization(self.env, eval_env)
+            except AttributeError as error:
+                raise AssertionError(
+                    "Training and eval env are not wrapped the same way, "
+                    "see https://stable-baselines3.readthedocs.io/en/master/guide/callbacks.html#evalcallback "
+                    "and warning above."
+                ) from error
 
         print("\n-------------------------------")
         print(f">>>    Testing model at timestep: {model_timestep}")
 
-        mean_reward, std_reward = evaluate_policy(eval_model, eval_env,
-                                                  n_eval_episodes=n_episodes,
-                                                  deterministic=True, render=False)
-
-        if record and not render:
-            render = True
-            warnings.warn("Video recording not possible if rendering is off, render set to True", UserWarning)
-
-        if render:
-            if record:
-                eval_env = VecVideoRecorder(eval_env, self.video_dir,
-                                            record_video_trigger=lambda x: x == 0,
-                                            video_length=self.video_length,
-                                            name_prefix="eval_video")
-                eval_env = VecMonitor(eval_env, self.log_dir)
-                
-                eval_model = self.algo.load(checkpoint_path, eval_env, tensorboard_log=self.log_dir)
-  
-            _, _ = evaluate_policy(eval_model, eval_env, n_eval_episodes=1,
-                                   deterministic=True, render=True)
-
-            if record:
-                eval_env.close_video_recorder()
-            
-        eval_env.close()
-
+        mean_reward, std_reward = evaluate_policy(test_model, eval_env, n_eval_episodes=n_episodes, deterministic=True, render=render)
         print(f"Reward: {mean_reward}, Standard Devation: {std_reward}")
+        
         print(">>   End.")
 
     @classmethod
@@ -395,6 +348,7 @@ class SB3Agent(SofaBaseAgent):
             exit(1)
 
         output_dir = list(filter(None, model_dir.split("/")))[-4]
+        log_dir = f"{model_dir}/log"
 
         model_log_path = f"{checkpoint_dir}/model_log.pkl"
         if not os.path.exists(model_log_path):
@@ -419,34 +373,16 @@ class SB3Agent(SofaBaseAgent):
         return agent
     
     def env_wrap(self, n_envs, normalize=True):
-        """Create wrapped training and testing environments.
-        
-        Parameters
-        ----------
-        n_envs: int
-            Number of training environments.
-        normalize: bool, default=True
-            Whether to wrap the environment to normalize the observations and rewards or not.
-        
-        Returns
-        -------
-        vec_env : object
-            The wrapped training environment.
-        """
         vec_env = SubprocVecEnv([make_env(self.env_id, i, self.seed, self.max_episode_steps) for i in range(n_envs)])
-        self.test_env = SubprocVecEnv([make_env(self.env_id, 0, self.seed, self.max_episode_steps, config={"render": 1})])
+        self.test_env = SubprocVecEnv([make_env(self.env_id, 0, self.seed*10, self.max_episode_steps)])
         
         if normalize:
-            if self.model_timestep is None:
+            if not os.path.exists(self.stats_path):
                 vec_env = VecNormalize(vec_env, norm_obs=True, norm_reward=True)
                 self.test_env = VecNormalize(self.test_env, norm_obs=True, training=False, norm_reward=False)
             else:
-                vecnormalize_path = f"{self.checkpoints_dir}/vecnormalize_{self.model_timestep}.pkl"
-                if not os.path.exists(vecnormalize_path):
-                    print(Fore.RED + '[ERROR]   ' + Fore.RESET + "Model VecNormalize file does not exist")
-                    exit(1)
-                vec_env = VecNormalize.load(vecnormalize_path, vec_env)
-                self.test_env = VecNormalize.load(vecnormalize_path, self.test_env)
+                vec_env = VecNormalize.load(self.stats_path, vec_env)
+                self.test_env = VecNormalize.load(self.stats_path, self.test_env)
                 self.test_env.training = False
                 self.test_env.norm_reward = False
 
@@ -454,22 +390,9 @@ class SB3Agent(SofaBaseAgent):
         self.test_env = VecMonitor(self.test_env, self.log_dir)
 
         return vec_env
+        return vec_env
 
     def policy(self, obs, deterministic=True):
-        """Perform prediction using the trained model
-        
-        Parameters
-        ----------
-        obs: object
-            The current state of the environment.
-        deterministic: bool, default=True
-            Whether or not to return deterministic actions.
-        
-        Returns
-        -------
-        object
-            The model's predicted action.
-        """
         return self.model.predict(obs, deterministic=deterministic)
     
     def close(self):
