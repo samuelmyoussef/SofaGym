@@ -7,8 +7,7 @@ from stable_baselines3.common.utils import set_random_seed
 
 
 def make_env(env_id: str, rank: int = 0, seed: int = 0, max_episode_steps: Optional[int] = None, config: Optional[dict] = None):
-    """
-    Utility function for multiprocessed env.
+    """Utility function for creating gym envs.
 
     Parameters
     ----------
@@ -29,8 +28,15 @@ def make_env(env_id: str, rank: int = 0, seed: int = 0, max_episode_steps: Optio
         The callable function to create the environment.
     """
     def _init():
-        env = gym.make(env_id, config=config)
-        env.seed(seed + rank)
+        env_seed = seed + rank
+        env_config = config
+        if env_config is None:
+            env_config = {"seed": env_seed}
+        else:
+            env_config['seed'] = env_seed
+
+        env = gym.make(env_id, config=env_config)
+        env.seed(env_seed)
         env.reset()
 
         if max_episode_steps:

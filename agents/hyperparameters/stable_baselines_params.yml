@@ -8,7 +8,7 @@
 #   - eval_freq: Evaluate the agent during training after every `eval_freq` steps.
 #   - n_eval_episodes: The number of episodes to evaluate the agent during each evaluation callback.
 #   - save_freq: Save a trained model checkpoint after every `save_freq` steps.
-#   - video_length: Max length of recorded videos.
+
 
 PPO:
   init_kwargs:
@@ -29,12 +29,14 @@ PPO:
     sde_sample_freq: -1
     target_kl: null
     policy_kwargs: "dict(net_arch=dict(pi=[512, 512, 512], vf=[512, 512, 512]), optimizer_class=th.optim.Adam, ortho_init=True, activation_fn=nn.Tanh)"
+    policy_kwargs: "dict(net_arch=dict(pi=[512, 512, 512], vf=[512, 512, 512]), optimizer_class=th.optim.Adam, ortho_init=True, activation_fn=nn.Tanh)"
     device: "auto"
   fit_kwargs:
     total_timesteps: 1000
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
+    save_freq: 100
 
 A2C:
   init_kwargs:
@@ -58,6 +60,7 @@ A2C:
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
+    save_freq: 100    
 
 DQN:
   init_kwargs:
@@ -85,6 +88,7 @@ DQN:
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
+    save_freq: 100
 
 SAC:
   init_kwargs:
@@ -114,6 +118,7 @@ SAC:
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
+    save_freq: 100
 
 TD3:
   init_kwargs:
@@ -140,6 +145,7 @@ TD3:
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
+    save_freq: 100
 
 DDPG:
   init_kwargs:
@@ -163,3 +169,4 @@ DDPG:
     max_episode_steps: 200
     eval_freq: 100
     n_eval_episodes: 5
+    save_freq: 100
