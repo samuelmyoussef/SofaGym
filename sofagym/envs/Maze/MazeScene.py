@@ -26,6 +26,8 @@ from splib3.numerics import RigidDof
 from stlib3.scene import ContactHeader, Scene
 from tripod import Tripod
 
+#from tripodcontroller import TripodController
+
 
 def setupanimation(actuators, step, angularstep, factor):
     """This function is called repeatidely in an animation.
@@ -157,5 +159,7 @@ def createScene(rootNode, config={"source": [0, 300, 0],
 
     actuators=[tripod.ActuatedArm0, tripod.ActuatedArm1, tripod.ActuatedArm2]
     animate(setupanimation, {"actuators": actuators, "step": 35.0, "angularstep": -1.4965}, duration=0.2)
+
+    #scene.Modelling.addObject(TripodController(name="TripodController",actuators=[tripod.ActuatedArm0, tripod.ActuatedArm1, tripod.ActuatedArm2]))
 
     return rootNode

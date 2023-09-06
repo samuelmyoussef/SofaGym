@@ -323,8 +323,8 @@ def getReward(root):
         return True, 1.0
 
     reward, terminal = root.Reward.getReward()
-    if reward != 0.0:
-        print(reward)
+    #if reward != 0.0:
+    #    print(reward)
 
     return terminal, reward
 
