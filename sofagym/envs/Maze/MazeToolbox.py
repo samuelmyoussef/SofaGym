@@ -99,7 +99,7 @@ class rewardShaper(Sofa.Core.Controller):
                         for k, path_point in enumerate(self.path_pos)]
         sorted_dist = sorted(dist_to_path, key=lambda item: item['dist'])
         if len(sorted_dist) < 2:
-            return 0.0
+            return 0.0, None
         closest_points = [sorted_dist[0]["id"], sorted_dist[1]["id"]]
 
         new_ratio = max(max(self.path_length[closest_points[0]],
@@ -329,7 +329,7 @@ def displace(actuator, displacement):
         None.
     """
     new_value = actuator.angleIn.value + displacement
-    if new_value <= 1.5 and new_value >= -1.5:
+    if new_value <= 0 and new_value >= -2:
         actuator.angleIn.value = new_value
 
 

@@ -56,12 +56,9 @@ class MazeEnv(AbstractEnv):
         self.nb_actions = str(nb_actions)
 
         dim_state = 9
-        low_coordinates = np.array([-1]*dim_state)
-        high_coordinates = np.array([1]*dim_state)
-        self.observation_space = spaces.Box(low_coordinates, high_coordinates, dtype='float32')
-
-    def step(self, action):
-        return super().step(action)
+        self.state_threshold = 100
+        high = np.array([self.state_threshold]*dim_state)
+        self.observation_space = spaces.Box(-high, high, dtype=np.float32)
 
     def reset(self):
         """Reset simulation.
