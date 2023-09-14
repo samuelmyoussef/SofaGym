@@ -123,6 +123,11 @@ class rewardShaper(Sofa.Core.Controller):
         self.start_node = 115
         self.prev_ratio = 0.0
 
+        self.visited = set()
+        self.min_reward = 0
+        self.total_reward = 0
+        self.terminal = False
+
     def getReward(self):
         """Compute the reward.
 
@@ -147,14 +152,30 @@ class rewardShaper(Sofa.Core.Controller):
             return 0.0, True
         closest_points = [sorted_dist[0]["id"], sorted_dist[1]["id"]]
 
-        new_ratio = max(self.path_length[closest_points[0]], 0)/self.path_length[-1]
+        #new_ratio = max(self.path_length[closest_points[0]], 0)/self.path_length[-1]
         # if new_ratio < self.prev_ratio:
         #     return 0.0, None
-        if new_ratio > self.prev_ratio:
-            self.prev_ratio = new_ratio
-            return 1.0, False
+        #if new_ratio > self.prev_ratio:
+        #    self.prev_ratio = new_ratio
+        #    return 1.0, False
+        #else:
+        #    return 0.0, False
+  
+        if closest_points[0] in self.visited:
+            reward = -0.25
         else:
-            return 0.0, False
+            reward = -0.04
+        
+        self.visited.add(closest_points[0])
+
+        self.total_reward += reward
+        
+        if self.total_reward < self.min_reward:
+            self.terminal = True
+        
+        #print(f"min_reward: {self.min_reward}   total_reward: {self.total_reward}")
+
+        return reward, self.terminal
 
     def update(self):
         """Update function.
@@ -189,6 +210,8 @@ class rewardShaper(Sofa.Core.Controller):
         self.path_pos = []
         for point in self.path:
             self.path_pos += [self.path_mo.position.value[point][:3]]
+
+        self.min_reward = -0.5 * len(self.path)
 
 
 class goalSetter(Sofa.Core.Controller):
@@ -324,7 +347,7 @@ def getReward(root):
 
     reward, terminal = root.Reward.getReward()
     #if reward != 0.0:
-    #    print(reward)
+    #   print(reward)
 
     return terminal, reward
 

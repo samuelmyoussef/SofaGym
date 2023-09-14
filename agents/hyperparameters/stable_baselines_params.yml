@@ -32,7 +32,7 @@ PPO:
     device: "auto"
   fit_kwargs:
     total_timesteps: 100000
-    max_episode_steps: 100
+    max_episode_steps: null
     eval_freq: 8000
     n_eval_episodes: 5
     save_freq: 100
