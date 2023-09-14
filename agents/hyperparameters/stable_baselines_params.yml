@@ -10,32 +10,30 @@
 #   - save_freq: Save a trained model checkpoint after every `save_freq` steps.
 #   - video_length: Max length of recorded videos.
 
-
 PPO:
   init_kwargs:
     policy: "MlpPolicy"
-    learning_rate: 0.0003
-    n_steps: 100
-    batch_size: 64
-    n_epochs: 10
-    gamma: 0.99
+    learning_rate: lin_6.00645744827779e-05
+    n_steps: 64
+    batch_size: 16
+    n_epochs: 1
+    gamma: 0.95
     gae_lambda: 0.95
-    clip_range: 0.2
+    clip_range: 0.3
     clip_range_vf: null
     normalize_advantage: True
-    ent_coef: 0.0
-    vf_coef: 0.5
-    max_grad_norm: 0.5
+    ent_coef: 1.024896115867073e-06
+    vf_coef: 0.9464885226547327
+    max_grad_norm: 2
     use_sde: False
     sde_sample_freq: -1
     target_kl: null
-    policy_kwargs: "dict(net_arch=dict(pi=[512, 512, 512], vf=[512, 512, 512]), optimizer_class=th.optim.Adam, ortho_init=True, activation_fn=nn.Tanh)"
-    policy_kwargs: "dict(net_arch=dict(pi=[512, 512, 512], vf=[512, 512, 512]), optimizer_class=th.optim.Adam, ortho_init=True, activation_fn=nn.Tanh)"
+    policy_kwargs: "dict(net_arch=dict(pi=[64, 64], vf=[64, 64]), optimizer_class=th.optim.Adam, ortho_init=True, activation_fn=nn.ELU)"
     device: "auto"
   fit_kwargs:
-    total_timesteps: 1000
-    max_episode_steps: 200
-    eval_freq: 100
+    total_timesteps: 100000
+    max_episode_steps: 100
+    eval_freq: 8000
     n_eval_episodes: 5
     save_freq: 100
     video_length: 200
