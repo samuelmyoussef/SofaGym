@@ -23,3 +23,23 @@ SB3:
         sde_sample_freq: -1
         ortho_init: True
         activation_fn: elu
+
+
+
+  Value:  -22.03333282470703
+  Params: 
+    batch_size: 32
+    n_steps: 1024
+    gamma: 0.999
+    learning_rate: 0.017149590786186934
+    lr_schedule: linear
+    ent_coef: 2.640243434153508e-05
+    clip_range: 0.3
+    n_epochs: 5
+    gae_lambda: 0.92
+    max_grad_norm: 0.8
+    vf_coef: 0.05394794835192018
+    net_arch: small
+    sde_sample_freq: 32
+    ortho_init: True
+    activation_fn: leaky_relu

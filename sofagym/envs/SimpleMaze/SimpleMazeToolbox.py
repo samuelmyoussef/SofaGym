@@ -444,13 +444,13 @@ def action_to_command(action):
         The command (number of the cabl and its displacement).
     """
     if action == 0:
-        theta_x, theta_z = 0.2, 0.2
+        theta_x, theta_z = 0.1, 0
     elif action == 1:
-        theta_x, theta_z = -0.2, 0.2
+        theta_x, theta_z = -0.1, 0
     elif action == 2:
-        theta_x, theta_z = 0.2, -0.2
+        theta_x, theta_z = 0, 0.1
     elif action == 3:
-        theta_x, theta_z = -0.2, -0.2
+        theta_x, theta_z = 0, -0.1
     else:
         raise NotImplementedError("Action is not in range 0 - 3")
 
