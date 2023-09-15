@@ -405,7 +405,7 @@ class SB3Agent(SofaBaseAgent):
                                            save_replay_buffer=True, save_vecnormalize=True,
                                            verbose=2)
         save_normalization = SaveBestNormalizeCallback(save_path=self.checkpoints_dir, verbose=2)
-        video_record_callback = VideoRecordCallback(self.video_dir, self.max_episode_steps, verbose=2)
+        video_record_callback = VideoRecordCallback(self.video_dir, self.video_length, verbose=2)
         eval_callback = EvalCallback(self.test_env, best_model_save_path=self.checkpoints_dir,
                                      log_path=self.log_dir, eval_freq=eval_freq,
                                      n_eval_episodes=n_eval_episodes, deterministic=True,
@@ -484,7 +484,7 @@ class SB3Agent(SofaBaseAgent):
             if record:
                 eval_env = VecVideoRecorder(eval_env, self.video_dir,
                                             record_video_trigger=lambda x: x == 0,
-                                            video_length=self.max_episode_steps,
+                                            video_length=self.video_length,
                                             name_prefix="eval_video")
             eval_env = VecMonitor(eval_env, self.log_dir)
 
