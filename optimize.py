@@ -26,7 +26,7 @@ from stable_baselines3.common.vec_env.vec_normalize import VecNormalize
 N_TRIALS = 10
 N_STARTUP_TRIALS = 5
 N_EVALUATIONS = 2
-N_TIMESTEPS = int(1e3)
+N_TIMESTEPS = int(1e4)
 EVAL_FREQ = int(N_TIMESTEPS / N_EVALUATIONS)
 N_EVAL_EPISODES = 3
 
@@ -73,6 +73,7 @@ def sample_ppo_params(trial: optuna.Trial) -> Dict[str, Any]:
     lr_schedule = trial.suggest_categorical('lr_schedule', ['linear', 'constant'])
     ent_coef = trial.suggest_float("ent_coef", 0.00000001, 0.1, log=True)
     clip_range = trial.suggest_categorical("clip_range", [0.1, 0.2, 0.3, 0.4])
+    cl_schedule = trial.suggest_categorical('cl_schedule', ['linear', 'constant'])
     n_epochs = trial.suggest_categorical("n_epochs", [1, 5, 10, 20])
     gae_lambda = trial.suggest_categorical("gae_lambda", [0.8, 0.9, 0.92, 0.95, 0.98, 0.99, 1.0])
     max_grad_norm = trial.suggest_categorical("max_grad_norm", [0.3, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 5])
@@ -94,6 +95,9 @@ def sample_ppo_params(trial: optuna.Trial) -> Dict[str, Any]:
 
     if lr_schedule == "linear":
         learning_rate = linear_schedule(learning_rate)
+    
+    if cl_schedule == "linear":
+        clip_range = linear_schedule(clip_range)
 
     # Independent networks usually work best
     # when not working with images
