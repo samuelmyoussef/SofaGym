@@ -43,3 +43,26 @@ SB3:
     sde_sample_freq: 32
     ortho_init: True
     activation_fn: leaky_relu
+
+
+
+    Number of finished trials:  10
+Best trial:
+  Value:  -43.839996337890625
+  Params: 
+    batch_size: 512
+    n_steps: 2048
+    gamma: 0.995
+    learning_rate: 0.033096203060840206
+    lr_schedule: constant
+    ent_coef: 0.09189040645058641
+    clip_range: 0.4
+    cl_schedule: linear
+    n_epochs: 1
+    gae_lambda: 0.92
+    max_grad_norm: 0.8
+    vf_coef: 0.046787048773584305
+    net_arch: small
+    sde_sample_freq: 16
+    ortho_init: True
+    activation_fn: elu

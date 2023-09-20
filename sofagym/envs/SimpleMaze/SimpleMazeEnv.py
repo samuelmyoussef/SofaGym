@@ -31,7 +31,7 @@ class SimpleMazeEnv(AbstractEnv):
                       "goalList": [301, 334, 317, 312],
                       "goal_node": 334,
                       "start_node": 269,
-                      "scale_factor": 200,
+                      "scale_factor": 10,
                       "timer_limit": 50,
                       "timeout": 30,
                       "display_size": (1600, 800),
@@ -44,7 +44,7 @@ class SimpleMazeEnv(AbstractEnv):
                       "start_from_history": None,
                       "python_version": "python3.9",
                       "zFar": 5000,
-                      "dt": 0.001
+                      "dt": 0.01
                       }
 
     def __init__(self, config=None):

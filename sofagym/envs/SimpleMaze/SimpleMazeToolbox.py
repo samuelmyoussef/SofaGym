@@ -162,7 +162,7 @@ class rewardShaper(Sofa.Core.Controller):
         #    return 0.0, False
   
         if closest_points[0] in self.visited:
-            reward = -0.25
+            reward = -0.5
         else:
             reward = -0.04
         
@@ -211,7 +211,7 @@ class rewardShaper(Sofa.Core.Controller):
         for point in self.path:
             self.path_pos += [self.path_mo.position.value[point][:3]]
 
-        self.min_reward = -0.5 * len(self.path)
+        self.min_reward = -0.5 * 2 * len(self.path)
 
 
 class goalSetter(Sofa.Core.Controller):
@@ -340,7 +340,7 @@ def getReward(root):
 
     spheres = root.Sphere.sphere_mo.position.value[:3]
     goal = root.Goal.GoalMO.position.value[:3]
-    if np.linalg.norm(spheres-goal) <= 10:
+    if np.linalg.norm(spheres-goal) <= 5:
         print("Terminal State")
         print(np.linalg.norm(spheres-goal))
         return True, 1.0
