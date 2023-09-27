@@ -1,5 +1,6 @@
 import pathlib
 import sys
+import os
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
@@ -13,6 +14,57 @@ from splib3.animation.animate import Animation
 
 SofaRuntime.importPlugin("Sofa.Component")
 
+
+class SimRestore(Sofa.Core.Controller):
+    def __init__(self, *args, **kwargs):
+        Sofa.Core.Controller.__init__(self, *args, **kwargs)
+
+        self.root = kwargs["rootNode"]
+        
+    def save(self):
+        position = self.root.InstrumentCombined.DOFs.position.value
+        np.save('./sofagym/envs/CatheterBeam/Results/save/position.npy', position)
+
+        xtip = self.root.InstrumentCombined.m_ircontroller.xtip.value
+        np.save('./sofagym/envs/CatheterBeam/Results/save/xtip.npy', xtip)
+        rotation = self.root.InstrumentCombined.m_ircontroller.rotationInstrument.value
+        np.save('./sofagym/envs/CatheterBeam/Results/save/rotation.npy', rotation)
+
+        collis = self.root.InstrumentCombined.Collis.CollisionDOFs.position.value
+        np.save('./sofagym/envs/CatheterBeam/Results/save/collision.npy', collis)
+
+        '''
+        try:
+            collis_1 = self.root.InstrumentCombined.Collis.LineCollisionModel-LineCollisionModel.getMechanicalState().position.value
+            collis_2 = self.root.InstrumentCombined.Collis.LineCollisionModel-PointCollisionModel.getMechanicalState().position.value
+            print("--------------------------------------------------------COLLIS")
+        except:
+            print("NO COLLIS")
+        '''
+        
+        #print("------------------------SAVED:",  position[-1])
+
+    def load(self):
+        if os.path.exists('position.npy'):
+            loaded_position = np.load('./sofagym/envs/CatheterBeam/Results/save/position.npy')
+            loaded_xtip = np.load('./sofagym/envs/CatheterBeam/Results/save/xtip.npy')
+            loaded_rotation = np.load('./sofagym/envs/CatheterBeam/Results/save/rotation.npy')
+            loaded_collis = np.load('./sofagym/envs/CatheterBeam/Results/save/collision.npy')
+
+            with self.root.InstrumentCombined.DOFs.position.writeable() as position:
+                position[:] = loaded_position[:]
+
+            with self.root.InstrumentCombined.m_ircontroller.xtip.writeable() as xtip:
+                xtip[:] = loaded_xtip[:]
+
+            with self.root.InstrumentCombined.m_ircontroller.rotationInstrument.writeable() as rotation:
+                rotation[:] = loaded_rotation[:]
+            
+            with self.root.InstrumentCombined.Collis.CollisionDOFs.position.writeable() as collis:
+                collis[:] = loaded_collis[:]
+
+            #print("-------------------------LOADED_POS:", loaded_position[-1])
+            #print("-------------------------LOADED:", self.root.InstrumentCombined.DOFs.position.value[-1])
 
 class RewardShaper(Sofa.Core.Controller):
     """Compute the reward.
@@ -161,7 +213,6 @@ class GoalSetter(Sofa.Core.Controller):
         Not used here.
         """
         pass
-
 
 def _getGoalPos(root):
     """Get XYZ position of the goal.

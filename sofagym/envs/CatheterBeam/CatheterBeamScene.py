@@ -198,6 +198,7 @@ def createScene(root,
     # SofaGym Env Toolbox
     root.addObject(RewardShaper(name="Reward", rootNode=root, goalPos=config['goalPos']))
     root.addObject(GoalSetter(name="GoalSetter", rootNode=root, goal=goal, goalPos=config['goalPos']))
+    root.addObject(SimRestore(name="SimRestore", rootNode=root))
 
     if visu:
         source = config["source"]

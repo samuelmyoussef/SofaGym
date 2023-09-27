@@ -49,6 +49,8 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
     create_scene(root,  config, mode = mode)
     Sofa.Simulation.init(root)
 
+    root.SimRestore.load()
+
     # Realise action from history
     if config['start_from_history'] is not None and _startCmd is not None:
         print(">>   Start from history ...")
@@ -111,6 +113,7 @@ def step_simulation(root, config, action, _startCmd, _getPos, viewer=None):
     surface_size = config['display_size']
 
     root.GoalSetter.set_mo_pos(goal)
+    root.SimRestore.save()
 
     # Create the command from action
     _startCmd(root, action, config["dt"]*(config["scale_factor"]-1))

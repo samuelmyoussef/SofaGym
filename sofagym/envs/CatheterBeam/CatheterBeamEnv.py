@@ -7,6 +7,8 @@ from gym import spaces
 from sofagym.AbstractEnv import AbstractEnv
 from sofagym.rpc_server import start_scene
 
+from sofagym.simulate import init_simulation, step_simulation
+
 
 class CatheterBeamEnv(AbstractEnv):
     """Sub-class of AbstractEnv, dedicated to the catheter beam scene.
@@ -68,6 +70,7 @@ class CatheterBeamEnv(AbstractEnv):
         self.config.update({'goalPos': self.goal})
 
         obs = start_scene(self.config, self.nb_actions)
+        #root = init_simulation(self.config, mode = 'visu')
         
         return np.array(obs['observation'])
 

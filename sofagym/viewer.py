@@ -313,20 +313,25 @@ class LegacyViewer:
         self.env.config.update({"render": 0})
         self.root = None
         self.reset()
+        self.save_path = self.env.config['save_path']
 
-        self.writer = imageio.get_writer(self.env.config['save_path']
+        self.writer = imageio.get_writer(self.save_path
                                          + datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
                                          + ".mp4", format='mp4', mode='I', fps=10)
+        
+        self.frame = 0
         
         glClearColor(0, 0, 0, 1)
 
     def reset(self):
         self.root = init_simulation(self.env.config)
+        self.root.SimRestore.load()
 
     def step(self, action):
         _ = step_simulation(self.root, self.env.config, action, self.startCmd, None, viewer=self)
 
     def render(self):
+        self.frame += 1
         # Handling the event queue
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -344,10 +349,30 @@ class LegacyViewer:
         # self.screen.blit(self.agent_surface, (0, self.surface_size[1]))
 
         pygame.display.flip()
+        self.save_image(image, str(self.frame))
+
         displayed_image = self.get_image()
         self.writer.append_data(displayed_image)
 
         return self.get_image()
+
+    def save_image(self, image, name):
+        """Save the image.
+
+        Parameters:
+        ----------
+            image: array
+                The image we want to save.
+            name: string
+                The name of the picture.
+
+        Returns:
+        -------
+            None.
+        """
+        img = Image.fromarray(image, 'RGB')
+        print(">> Saving new image at location " + self.save_path + "_" + name + ".png")
+        img.save(self.save_path + "/img_" + name + ".png")
 
     def render_simulation(self, root):
         image = self.render_sim(root=root)
