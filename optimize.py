@@ -14,7 +14,7 @@ import optuna
 import sofagym.envs
 import torch
 import torch.nn as nn
-from agents.utils import make_env
+from agents.utils import make_env, mkdirp
 from optuna.pruners import MedianPruner
 from optuna.samplers import TPESampler
 from stable_baselines3 import A2C, PPO
@@ -23,14 +23,18 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecMonitor
 from stable_baselines3.common.vec_env.vec_normalize import VecNormalize
 
-N_TRIALS = 10
+import yaml
+import os
+
+N_TRIALS = 40
 N_STARTUP_TRIALS = 5
 N_EVALUATIONS = 2
-N_TIMESTEPS = int(1e4)
+N_TIMESTEPS = int(1e5)
 EVAL_FREQ = int(N_TIMESTEPS / N_EVALUATIONS)
 N_EVAL_EPISODES = 3
 
-ENV_ID = "simple_maze-v0"
+ENV_ID = "maze-v0"
+ALGORITHM = "PPO"
 
 DEFAULT_HYPERPARAMS = {
     "policy": "MlpPolicy"
@@ -78,7 +82,7 @@ def sample_ppo_params(trial: optuna.Trial) -> Dict[str, Any]:
     gae_lambda = trial.suggest_categorical("gae_lambda", [0.8, 0.9, 0.92, 0.95, 0.98, 0.99, 1.0])
     max_grad_norm = trial.suggest_categorical("max_grad_norm", [0.3, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 5])
     vf_coef = trial.suggest_uniform("vf_coef", 0, 1)
-    net_arch = trial.suggest_categorical("net_arch", ["small", "medium"])
+    net_arch = trial.suggest_categorical("net_arch", ["small", "medium", "big"])
     # Uncomment for gSDE (continuous actions)
     # log_std_init = trial.suggest_uniform("log_std_init", -4, 1)
     # Uncomment for gSDE (continuous action)
@@ -104,9 +108,15 @@ def sample_ppo_params(trial: optuna.Trial) -> Dict[str, Any]:
     net_arch = {
         "small": dict(pi=[64, 64], vf=[64, 64]),
         "medium": dict(pi=[256, 256], vf=[256, 256]),
+        "big": dict(pi=[512, 512, 512], vf=[512, 512, 512])
     }[net_arch]
 
     activation_fn = {"tanh": nn.Tanh, "relu": nn.ReLU, "elu": nn.ELU, "leaky_relu": nn.LeakyReLU}[activation_fn]
+
+    # Display true values.
+    trial.set_user_attr("gamma_", gamma)
+    trial.set_user_attr("gae_lambda_", gae_lambda)
+    trial.set_user_attr("n_steps", n_steps)
 
     return {
         "n_steps": n_steps,
@@ -127,6 +137,30 @@ def sample_ppo_params(trial: optuna.Trial) -> Dict[str, Any]:
             ortho_init=ortho_init,
         ),
     }
+
+
+class SaveTrialParams:
+    def __init__(self, path: str):
+        self.path = path
+        self.data = {}
+        self.trial = 0
+
+    def __call__(self, study: optuna.study.Study, trial: optuna.trial.FrozenTrial) -> None:
+        current_trial = {}
+        current_trial["trial_number"] = self.trial
+        current_trial["value"] = trial.value
+        current_trial["params"] = trial.params
+
+        with open(self.path, "r") as file:
+            data = yaml.safe_load(file)
+            self.data = data
+            
+        self.data[f"Trial {current_trial['trial_number']}"] = current_trial
+ 
+        with open(self.path, "w") as file:
+            yaml.dump(self.data, file)
+        
+        self.trial += 1
 
 
 class TrialEvalCallback(EvalCallback):
@@ -165,19 +199,18 @@ class TrialEvalCallback(EvalCallback):
                 return False
             
         return True
-    
+
 
 def create_env():
-    vec_env = SubprocVecEnv([make_env(ENV_ID, 0, 0, 100)])
+    vec_env = SubprocVecEnv([make_env(ENV_ID, 0, 0, None)])
     vec_env = VecNormalize(vec_env, norm_obs=True, norm_reward=True)
     vec_env = VecMonitor(vec_env)
 
-    test_env = SubprocVecEnv([make_env(ENV_ID, 0, 0, 100)])
+    test_env = SubprocVecEnv([make_env(ENV_ID, 0, 0, None)])
     test_env = VecNormalize(test_env, norm_obs=True, training=False, norm_reward=False)
     test_env = VecMonitor(test_env)
 
     return vec_env, test_env
-
 
 def objective(trial: optuna.Trial) -> float:
     kwargs = DEFAULT_HYPERPARAMS.copy()
@@ -189,17 +222,21 @@ def objective(trial: optuna.Trial) -> float:
     #eval_env = Monitor(gym.make(ENV_ID))
     train_env, eval_env = create_env()
 
+    trial_number = trial.number
+
+    log_dir = f"./Results/{ENV_ID}/{ALGORITHM}/hyper_opt/log/{trial_number}"
     # Create the RL model.
-    model = PPO(env=train_env, **kwargs)
+    model = PPO(env=train_env, verbose=1, tensorboard_log=log_dir, **kwargs)
 
     # Create the callback that will periodically evaluate and report the performance.
     eval_callback = TrialEvalCallback(
-        eval_env, trial, n_eval_episodes=N_EVAL_EPISODES, eval_freq=EVAL_FREQ, deterministic=True
+        eval_env, trial, n_eval_episodes=N_EVAL_EPISODES, eval_freq=EVAL_FREQ, deterministic=True, verbose=1
     )
 
     nan_encountered = False
     try:
-        model.learn(N_TIMESTEPS, progress_bar=True, callback=eval_callback)
+        print(f"-------------------------------------Trial {trial.number}: Model learning")
+        model.learn(N_TIMESTEPS, progress_bar=False, callback=eval_callback, log_interval=1, tb_log_name=f"log_{trial_number}")
     except AssertionError as e:
         # Sometimes, random hyperparams can generate NaN.
         print(e)
@@ -228,8 +265,30 @@ if __name__ == "__main__":
     pruner = MedianPruner(n_startup_trials=N_STARTUP_TRIALS, n_warmup_steps=N_EVALUATIONS // 3)
 
     study = optuna.create_study(sampler=sampler, pruner=pruner, direction="maximize")
+    
+    params_path = f"./Results/{ENV_ID}/{ALGORITHM}/hyper_opt"
+    mkdirp(params_path)
+    params_file = f"{params_path}/params.yaml"
+    data = {}
+    data["Study_data"] = {"n_trials": N_TRIALS,
+                          "n_startup_trials": N_STARTUP_TRIALS,
+                          "n_evals": N_EVALUATIONS,
+                          "n_timesteps": N_TIMESTEPS,
+                          "eval_freq": EVAL_FREQ,
+                          "n_eval_episodes": N_EVAL_EPISODES,
+                          "env_id": ENV_ID,
+                          "algo": ALGORITHM
+    }
+    with open(params_file, "w") as file:
+        yaml.dump(data, file)
+    
+    study_save_trial_params = SaveTrialParams(params_file)
+
     try:
-        study.optimize(objective, n_trials=N_TRIALS, timeout=None, n_jobs=1)
+        study.optimize(objective, n_trials=N_TRIALS, timeout=None, n_jobs=-1,
+                       show_progress_bar=True, 
+                       callbacks=[study_save_trial_params]
+                       )
     except KeyboardInterrupt:
         pass
 
@@ -247,3 +306,19 @@ if __name__ == "__main__":
     print("  User attrs:")
     for key, value in trial.user_attrs.items():
         print("    {}: {}".format(key, value))
+
+    
+    file_data = {}
+    best_trial = {}
+    best_trial["trial_number"] = trial.number
+    best_trial["value"] = trial.value
+    best_trial["params"] = trial.params
+    with open(params_file, "r") as file:
+        data = yaml.safe_load(file)
+        print(data)
+        file_data = data
+        
+    file_data["Best Trial"] = best_trial
+
+    with open(params_file, "w") as file:
+        yaml.dump(file_data, file)
