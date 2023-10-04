@@ -116,7 +116,7 @@ def createScene(rootNode, config={"source": [0, 300, 0],
     scene.Simulation.addObject('GenericConstraintCorrection')
     scene.Settings.mouseButton.stiffness = 10
     scene.Simulation.TimeIntegrationSchema.rayleighStiffness = 0.05
-    ContactHeader(rootNode, alarmDistance=0.5, contactDistance=0.2, frictionCoef=0.2)
+    ContactHeader(rootNode, alarmDistance=2, contactDistance=0.2, frictionCoef=0.2)
     
     # Visu
     if visu:
