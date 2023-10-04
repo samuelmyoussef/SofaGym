@@ -155,7 +155,7 @@ def createScene(rootNode, config={"source": [0, 300, 0],
         rootNode.addObject("LightManager")
         spotloc = [0, source[1], 0]
         rootNode.addObject("SpotLight", position=spotloc, direction=[0, -np.sign(source[1]), 0])
-        rootNode.addObject("InteractiveCamera", name="camera", position=source, orientation=[-0.414607,-0.196702,-0.0234426,0.888178], lookAt=target, zFar=500)
+        rootNode.addObject("InteractiveCamera", name="camera", position=source, orientation=[-0.595303, -0.0486717, 0.00218126, 0.802023], lookAt=target, zFar=500)
 
     actuators=[tripod.ActuatedArm0, tripod.ActuatedArm1, tripod.ActuatedArm2]
     animate(setupanimation, {"actuators": actuators, "step": 35.0, "angularstep": -1.4965}, duration=0.2)

@@ -26,8 +26,8 @@ class MazeEnv(AbstractEnv):
     metadata = {'render.modes': ['human', 'rgb_array']}
     DEFAULT_CONFIG = {"scene": "Maze",
                       "deterministic": True,
-                      "source": [-82.0819, 186.518, 135.963],
-                      "target": [-2.09447, 5.75347, -4.34572],
+                      "source": [-22.7705, 267.58, 72.7625],
+                      "target": [0, 0, 0],
                       "goalList": [334, 317, 312, 301],
                       "goal_node": 270,
                       "start_node": 269,
@@ -56,7 +56,7 @@ class MazeEnv(AbstractEnv):
         self.nb_actions = str(nb_actions)
 
         dim_state = 9
-        self.state_threshold = 100
+        self.state_threshold = 1
         high = np.array([self.state_threshold]*dim_state)
         self.observation_space = spaces.Box(-high, high, dtype=np.float32)
 
