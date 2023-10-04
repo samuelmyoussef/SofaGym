@@ -14,7 +14,7 @@ PPO:
   init_kwargs:
     policy: "MlpPolicy"
     learning_rate: 0.0003
-    n_steps: 100
+    n_steps: 128
     batch_size: 64
     n_epochs: 10
     gamma: 0.99
@@ -31,9 +31,9 @@ PPO:
     policy_kwargs: "dict(net_arch=dict(pi=[512, 512, 512], vf=[512, 512, 512]), optimizer_class=th.optim.Adam, ortho_init=True, activation_fn=nn.Tanh)"
     device: "auto"
   fit_kwargs:
-    total_timesteps: 100000
+    total_timesteps: 500000
     max_episode_steps: null
-    eval_freq: 8000
+    eval_freq: 10000
     n_eval_episodes: 5
     save_freq: 10000
     video_length: 200
