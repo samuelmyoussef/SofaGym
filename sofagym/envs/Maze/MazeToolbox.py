@@ -82,6 +82,11 @@ class rewardShaper(Sofa.Core.Controller):
         self.start_node = 115
         self.prev_ratio = 0.0
 
+        self.visited = set()
+        self.min_reward = 0
+        self.total_reward = 0
+        self.terminal = False
+
     def getReward(self):
         """Compute the reward.
 
@@ -99,9 +104,10 @@ class rewardShaper(Sofa.Core.Controller):
                         for k, path_point in enumerate(self.path_pos)]
         sorted_dist = sorted(dist_to_path, key=lambda item: item['dist'])
         if len(sorted_dist) < 2:
-            return 0.0, None
+            return 0.0, True
         closest_points = [sorted_dist[0]["id"], sorted_dist[1]["id"]]
 
+        '''
         new_ratio = max(max(self.path_length[closest_points[0]],
                             self.path_length[closest_points[1]]), 0)/self.path_length[-1]
         if new_ratio > self.prev_ratio:
@@ -109,6 +115,23 @@ class rewardShaper(Sofa.Core.Controller):
             return 1.0, None
         else:
             return new_ratio, None
+        '''
+
+        if closest_points[0] in self.visited:
+            reward = -0.5
+        else:
+            reward = -0.04
+        
+        self.visited.add(closest_points[0])
+
+        self.total_reward += reward
+        
+        if self.total_reward < self.min_reward:
+            self.terminal = True
+        
+        #print(f"min_reward: {self.min_reward}   total_reward: {self.total_reward}")
+
+        return reward, self.terminal
 
     def update(self):
         """Update function.
@@ -124,7 +147,6 @@ class rewardShaper(Sofa.Core.Controller):
             None.
 
         """
-
         edges = []
         with self.path_mesh.edges.writeable() as Topoedges:
             for edge in Topoedges:
@@ -144,6 +166,8 @@ class rewardShaper(Sofa.Core.Controller):
         self.path_pos = []
         for point in self.path:
             self.path_pos += [self.path_mo.position.value[point][:3]]
+        
+        self.min_reward = -0.5 * 2 * len(self.path)
 
 
 class goalSetter(Sofa.Core.Controller):
@@ -280,10 +304,12 @@ def getReward(rootNode):
     ball_pos = rootNode.Simulation.Sphere.sphere_mo.position.value[0]
     dist = np.linalg.norm(ball_pos - goal)
 
-    reward, cost = rootNode.Reward.getReward()
+    if dist < goal_radius:
+        return True, 1.0
+    elif ball_pos[1] < ball_fall_threshold:
+        return True, -100.0
 
-    if dist < goal_radius or ball_pos[1] < ball_fall_threshold:
-        done = True
+    reward, done = rootNode.Reward.getReward()
 
     return done, reward
 
