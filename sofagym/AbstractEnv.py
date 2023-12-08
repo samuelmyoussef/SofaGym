@@ -152,20 +152,9 @@ class AbstractEnv(gym.Env):
             print("sofagym.envs."+self.scene+"." + self.scene + "Scene")
             raise NotImplementedError("Importing your SOFA Scene Failed") from exc
 
-        if isinstance(root, type(None)):
-            print("------------------------------INIT ROOT")
-            #self.root = init_simulation(self.config, self._startCmd, mode='simu')
-            self.root = self.init_simulation()
-        else:
-            print("------------------------------_ROOT")
-            self.root = root
-            #Sofa.Simulation.init(self.root)
-
         self.viewer = None
         self.render_mode = render_mode
 
-        self.goalList = None
-        self.goal = None
         self.past_actions = []
 
         self.pos = []
@@ -181,6 +170,27 @@ class AbstractEnv(gym.Env):
         self.timeout = self.config["timeout"]
 
         self.init_save_paths()
+
+        self.goal = None
+        if self.config["goal"]:
+            self.goalList = self.config["goalList"]
+            self.init_goal()
+
+        if isinstance(root, type(None)):
+            print("------------------------------INIT ROOT")
+            #self.root = init_simulation(self.config, self._startCmd, mode='simu')
+            self.root = self.init_simulation()
+        else:
+            print("------------------------------_ROOT")
+            self.root = root
+            #Sofa.Simulation.init(self.root)
+
+    def init_goal(self):
+        # Set a new random goal from the list
+        id_goal = self.np_random.choice(range(len(self.goalList)))
+        self.config.update({'goal_node': id_goal})
+        self.goal = self.goalList[id_goal]
+        self.config.update({'goalPos': self.goal})
 
     def init_save_paths(self):
         """Create directories to save results and images.
@@ -354,7 +364,6 @@ class AbstractEnv(gym.Env):
     
             
         """
-
         # assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
         action = self._formataction(action)
@@ -439,13 +448,16 @@ class AbstractEnv(gym.Env):
         self.viewer = None
 
         splib3.animation.animate.manager = None
-        if not self.goalList:
-            self.goalList = self.config["goalList"]
+
+        if self.config["goal"]:
+            self.init_goal()
+        #if not self.goalList:
+        #    self.goalList = self.config["goalList"]
 
         # Set a new random goal from the list
-        id_goal = self.np_random.choice(range(len(self.goalList)))
-        self.config.update({'goal_node': id_goal})
-        self.goal = self.goalList[id_goal]
+        #id_goal = self.np_random.choice(range(len(self.goalList)))
+        #self.config.update({'goal_node': id_goal})
+        #self.goal = self.goalList[id_goal]
 
         self.timer = 0
         self.past_actions = []
@@ -623,8 +635,10 @@ class AbstractEnv(gym.Env):
             print(">>   ... Done.")
 
         # Init Reward and GoalSetter
-        root.GoalSetter.update(self.config["goalList"])
-        root.Reward.update(self.config["goalList"])
+        if self.config["goal"]:
+            root.GoalSetter.update(self.goal)
+        
+        root.Reward.update(0)
 
         try:
             root.StateInitializer.init_state(self.config["init_states"])
@@ -636,9 +650,12 @@ class AbstractEnv(gym.Env):
             for _ in range(self.config["time_before_start"]):
                 Sofa.Simulation.animate(root, self.config["dt"])
             print(">>   ... Done.")
+            
             # Update Reward and GoalSetter
-            root.GoalSetter.update(self.config["goalList"])
-            root.Reward.update(self.config["goalList"])
+            if self.config["goal"]:
+                root.GoalSetter.update(self.goal)
+            
+            root.Reward.update(self.goal)
 
         return root
 
@@ -666,11 +683,12 @@ class AbstractEnv(gym.Env):
                 The positions of object(s) in the scene.
 
         """
-        goal = self.config['goalPos']
+        if self.config["goal"]:
+            goal = self.config['goalPos']
+            self.root.GoalSetter.set_mo_pos(goal)
+        
         render = self.config['render']
         surface_size = self.config['display_size']
-
-        self.root.GoalSetter.set_mo_pos(goal)
 
         #print("----------------------------STEP SIMULATION STATE", root.InstrumentCombined.m_ircontroller.xtip.value[0])
 
@@ -724,7 +742,6 @@ class ServerEnv(AbstractEnv):
     
             
         """
-
         # assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
 
         action = self._formataction(action)
@@ -768,13 +785,17 @@ class ServerEnv(AbstractEnv):
         self.viewer = None
 
         splib3.animation.animate.manager = None
-        if not self.goalList:
-            self.goalList = self.config["goalList"]
+        
+        if self.config["goal"]:
+            self.init_goal()
+        
+        #if not self.goalList:
+        #    self.goalList = self.config["goalList"]
 
         # Set a new random goal from the list
-        id_goal = self.np_random.choice(range(len(self.goalList)))
-        self.config.update({'goal_node': id_goal})
-        self.goal = self.goalList[id_goal]
+        #id_goal = self.np_random.choice(range(len(self.goalList)))
+        #self.config.update({'goal_node': id_goal})
+        #self.goal = self.goalList[id_goal]
 
         self.timer = 0
         self.past_actions = []
@@ -795,7 +816,6 @@ class ServerEnv(AbstractEnv):
         -------
             None.
         """
-
         clean_registry(self.past_actions)
 
     def close(self):
