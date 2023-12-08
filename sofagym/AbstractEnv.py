@@ -20,7 +20,10 @@ import os
 import splib3
 
 from sofagym.viewer import Viewer
-from sofagym.rpc_server import start_server, add_new_step, get_result, clean_registry, close_scene
+#from sofagym.rpc_server import start_server, add_new_step, get_result, clean_registry, close_scene
+
+import importlib
+from sofagym.simulate import init_simulation, step_simulation
 
 
 class AbstractEnv(gym.Env):
@@ -134,6 +137,13 @@ class AbstractEnv(gym.Env):
 
         self.initialization()
 
+        self._getState = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").getState
+        self._getReward = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").getReward
+        self._startCmd = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").startCmd
+        self._getPos = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").getPos
+
+        self.root = init_simulation(self.config, self._startCmd, mode='simu')
+
         self.render_mode = render_mode
 
     def initialization(self):
@@ -147,10 +157,13 @@ class AbstractEnv(gym.Env):
         -------
             None.
         """
-
+        self.scene = self.config['scene']
         self.goalList = None
         self.goal = None
         self.past_actions = []
+
+        self.pos = []
+        self.past_pos = []
 
         
         self.num_envs = 40
@@ -165,9 +178,6 @@ class AbstractEnv(gym.Env):
 
         self.timer = 0
         self.timeout = self.config["timeout"]
-
-        # Start the server which distributes the calculations to its clients
-        start_server(self.config)
 
         if 'save_data' in self.config and self.config['save_data']:
             save_path_results = self.config['save_path']+"/data"
@@ -303,27 +313,26 @@ class AbstractEnv(gym.Env):
 
         action = self._formataction(action)
 
-        # Pass the actions to the server to launch the simulation.
-        result_id = add_new_step(self.past_actions, action)
+        self.pos = step_simulation(self.root, self.config, action, self._startCmd, self._getPos)
+
         self.past_actions.append(action)
+        self.past_pos.append(self.pos)
 
         # Request results from the server.
         # print("[INFO]   >>> Result id:", result_id)
-        results = get_result(result_id, timeout=self.timeout)
+        #results = get_result(result_id, timeout=self.timeout)
 
-        obs = np.array(results["observation"])  # to work with baseline
-        reward = results["reward"]
-        done = results["done"]
+        obs = np.array(self._getState(self.root), dtype=np.float32)
+        done, reward = self._getReward(self.root)
 
         # Avoid long explorations by using a timer.
         self.timer += 1
         if self.timer >= self.config["timer_limit"]:
             # reward = -150
             truncated = True
-        info={}#(not use here)
+        
+        info = {} #(not use here)
 
-        if self.config["planning"]:
-            self.clean()
         return obs, reward, done, info
 
     def async_step(self, action):
@@ -376,7 +385,7 @@ class AbstractEnv(gym.Env):
             obs, info
 
         """
-        self.clean()
+        #self.clean()
         self.viewer = None
 
         splib3.animation.animate.manager = None
@@ -390,8 +399,13 @@ class AbstractEnv(gym.Env):
 
         self.timer = 0
         self.past_actions = []
+        self.past_pos = []
+
+        self.root = init_simulation(self.config, self._startCmd, mode='simu')
         
-        return
+        obs = np.array(self._getState(self.root), dtype=np.float32)
+        
+        return obs
 
     def render(self, mode):
         """See the current state of the environment.
@@ -460,8 +474,8 @@ class AbstractEnv(gym.Env):
         """
         if self.viewer is not None:
             self.viewer.close()
-
-        close_scene()
+        
+        #close_scene()
         print("All clients are closed. Bye Bye.")
 
     def configure(self, config):
