@@ -52,13 +52,13 @@ class StateInitializer(Sofa.Core.Controller):
         if kwargs["init_states"] is not None:
             self.init_states = kwargs["init_states"]
         else:
-            print(">> ERROR: no inital states given.")
+            print(">> ERROR: no initial states given.")
             exit(1)
 
         self.cart = self.rootNode.Modeling.Cart
         self.pole = self.rootNode.Modeling.Pole
 
-    def init_state(self):
+    def init_state(self, init_states):
         """Randomly initialize the environment state.
 
         Parameters:
@@ -70,6 +70,8 @@ class StateInitializer(Sofa.Core.Controller):
             None.
 
         """
+        #np_random, seed = seeding.np_random(0)
+        self.init_states = init_states
         cart_pos, cart_vel, pole_theta, pole_theta_dot = self.init_states
 
         with self.cart.MechanicalObject.position.writeable() as position:
@@ -124,14 +126,14 @@ class RewardShaper(Sofa.Core.Controller):
         self.rootNode = None
         if kwargs["rootNode"]:
             self.rootNode = kwargs["rootNode"]
-        if kwargs["max_angle"]:
+        if kwargs["max_angle"] is not None:
             self.max_angle = kwargs["max_angle"]
-        else:
-            print(">> ERROR: give a max angle for the normalization of the reward.")
-            exit(1)
-        if kwargs["pole_length"]:
+        #else:
+        #    print(">> ERROR: give a max angle for the normalization of the reward.")
+        #    exit(1)
+        if kwargs["pole_length"] is not None:
             self.pole_length = kwargs["pole_length"]
-
+        
         self.cart = self.rootNode.Modeling.Cart
         self.pole = self.rootNode.Modeling.Pole
 
@@ -152,7 +154,7 @@ class RewardShaper(Sofa.Core.Controller):
         
         return 1, pole_theta, self.max_angle
 
-    def update(self):
+    def update(self, goal):
         """Update function.
 
         This function is used as an initialization function.
@@ -211,6 +213,8 @@ def getState(rootNode):
 
     state = [cart_pos, cart_vel, pole_theta, pole_theta_dot]
 
+    print("-----------------------------STATE", state)
+
     return state
 
 
@@ -218,7 +222,7 @@ class GoalSetter(Sofa.Core.Controller):
     def __init__(self, *args, **kwargs):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
-    def update(self):
+    def update(self, goal):
         pass
 
     def set_mo_pos(self, goal):
@@ -270,6 +274,7 @@ class ApplyAction(Sofa.Core.Controller):
 
     def apply_action(self, incr):
         self._move(incr)
+        print("----------------------------APPLY ACTION", incr)
 
 
 def action_to_command(actions, root, nb_step):
@@ -330,6 +335,9 @@ def startCmd_CartPole(rootNode, incr, duration):
     """
 
     # Definition of the elements of the animation
+    
+    #rootNode.ApplyAction.apply_action(incr)
+    
     def executeAnimation(rootNode, incr, factor):
         rootNode.ApplyAction.apply_action(incr)
 
