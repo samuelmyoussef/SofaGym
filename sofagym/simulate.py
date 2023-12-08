@@ -62,11 +62,11 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
         print(">>   ... Done.")
 
     # Init Reward and GoalSetter
-    root.GoalSetter.update()
-    root.Reward.update()
+    root.GoalSetter.update(0)
+    root.Reward.update(0)
 
     try:
-        root.StateInitializer.init_state()
+        root.StateInitializer.init_state(config["init_states"])
     except AttributeError as error:
         print(error)
 
@@ -76,8 +76,8 @@ def init_simulation(config, _startCmd=None, mode="simu_and_visu"):
             Sofa.Simulation.animate(root, config["dt"])
         print(">>   ... Done.")
         # Update Reward and GoalSetter
-        root.GoalSetter.update()
-        root.Reward.update()
+        root.GoalSetter.update(0)
+        root.Reward.update(0)
 
     return root
 
