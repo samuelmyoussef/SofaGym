@@ -646,10 +646,10 @@ class AbstractEnv(gym.Env):
             print(">>   ... Done.")
 
         # Init Reward and GoalSetter
-        if self.config["goal"]:
-            root.GoalSetter.update(self.goal)
-        
-        root.Reward.update(0)
+        #if self.config["goal"]:
+        #    root.GoalSetter.update(self.goal)
+        #
+        #root.Reward.update()
 
         if self.config["randomize_states"]:
             self.root.StateInitializer.init_state(self.config["init_states"])
@@ -660,11 +660,11 @@ class AbstractEnv(gym.Env):
                 Sofa.Simulation.animate(self.root, self.config["dt"])
             print(">>   ... Done.")
             
-            # Update Reward and GoalSetter
-            if self.config["goal"]:
-                self.root.GoalSetter.update(self.goal)
-            
-            self.root.Reward.update(self.goal)
+        # Update Reward and GoalSetter
+        if self.config["goal"]:
+            self.root.GoalSetter.update(self.goal)
+        
+        self.root.Reward.update(self.goal)
 
     def step_simulation(self, action):
         """Realise one step in the simulation.
