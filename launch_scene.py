@@ -5,8 +5,8 @@ import importlib
 #from sofagym.no_server import *
 
 #scene = "CartPole"
-scene = "CatheterBeam"
-#scene = "CatheterBeam1Instrument"
+#scene = "CatheterBeam"
+scene = "CatheterBeam1Instrument"
 
 createScene = importlib.import_module("sofagym.envs."+scene+"." + scene + "Scene").createScene
 
