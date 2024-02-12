@@ -22,13 +22,44 @@ def add_goal_node(root):
     return goal
 
 
+dim_state = 12
+DEFAULT_CONFIG = {"scene": "CatheterBeam",
+                  "deterministic": True,
+                  "source": [-1169.51, 298.574, 257.631],
+                  "target": [0, 0, 0],
+                  "start_node": None,
+                  "scale_factor": 10,
+                  "dt": 0.01,
+                  "timer_limit": 80,
+                  "timeout": 50,
+                  "display_size": (1600, 800),
+                  "render": 0,
+                  "save_data": False,
+                  "save_image": False,
+                  "save_path": path + "/Results" + "/CatheterBeam",
+                  "planning": False,
+                  "discrete": False,
+                  "start_from_history": None,
+                  "python_version": sys.version,
+                  "zFar": 4000,
+                  "time_before_start": 0,
+                  "seed": None,
+                  "scale": 30,
+                  "rotation": [140.0, 0.0, 0.0],
+                  "translation": [0.0, 0.0, 0.0],
+                  "goal": True,
+                  "goalList": [1226, 1663, 1797, 1544, 2233, 2580, 3214],
+                  "nb_actions": 12,
+                  "dim_state": dim_state,
+                  "randomize_states": False,
+                  "init_states": [0] * dim_state,
+                  "use_server": False,
+                  "goalPos": None
+                  }
+
+
 def createScene(root,
-                config={"source": [0, 0, 160],
-                        "target": [0, 0, 0],
-                        "goalPos": None,
-                        "seed": None,
-                        "zFar":4000,
-                        "dt": 0.01},
+                config=DEFAULT_CONFIG,
                 mode='simu_and_visu'):
     
     # SETUP
