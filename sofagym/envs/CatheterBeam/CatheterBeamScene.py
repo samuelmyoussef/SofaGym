@@ -9,6 +9,8 @@ import numpy as np
 from CatheterBeamToolbox import GoalSetter, RewardShaper
 from splib3.animation import AnimationManagerController
 
+from sofagym.controllers import RandomActions
+
 path = dirname(abspath(__file__)) + '/mesh/'
 
 
@@ -208,5 +210,7 @@ def createScene(root,
         root.addObject("InteractiveCamera", name="camera", position=source, orientation=[0.472056, -0.599521, -0.501909, 0.407217], lookAt=target, zFar=5000)
 
     root.addObject(AnimationManagerController(root, name="AnimationManager"))
+
+    root.addObject(RandomActions(name="Model", rootNode=root, env_id="catheter_beam-v0"))
 
     return root
