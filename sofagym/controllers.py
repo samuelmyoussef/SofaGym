@@ -27,6 +27,9 @@ from stable_baselines3.common.evaluation import evaluate_policy
 
 from agents.utils import make_env, mkdirp, sec_to_hours
 
+
+from sofagym.envs.CatheterBeam1Instrument.CatheterBeam1InstrumentToolbox import getState
+
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
@@ -235,14 +238,25 @@ class ActionsSequence(Sofa.Core.Controller):
         self.sequence_length = len(self.actions_sequence) - 1
         self.action = 0
 
+    def onEvent(self, event):
+        #print(event)
+
+        if event['type'] == "SimulationInitDoneEvent":
+            #self.load()
+            self.observation = self.eval_env.reset()
+            print("-------------------BEGIN SIMULATION")
+
     def onAnimateBeginEvent(self, dt):
         #obs = self.rootNode.InstrumentCombined.m_ircontroller.xtip.value[0]
         #print("-----------------ANIMATEBEGIN STATE", self.observation, obs)
         
-        if self.first_step:
-            self.observation = self.eval_env.reset()
-            self.first_step = False
+        #if self.first_step:
+        #    self.observation = self.eval_env.reset()
+        #    self.first_step = False
 
+        #self.eval_env._getState(self.rootNode)
+        print("ANIMATE BEGIN: ", getState(self.rootNode))
+        
         action = self.actions_sequence[self.action]
         reward, done = self.evaluate(action)
         
@@ -288,7 +302,13 @@ class ReloadSim(Sofa.Core.Controller):
             self.rootNode.SimRestore.save()
 
         if key=="M" :
+            Sofa.Simulation.reset(self.rootNode)
             obs = self.rootNode.SimRestore.load()
+            print("[DEBUG]  RELOADSIM", self.rootNode.InstrumentCombined.m_ircontroller.xtip.value)
             Sofa.Simulation.updateVisual(self.rootNode)
+
+            getState(self.rootNode)
+            #self.rootNode.InstrumentCombined.m_ircontroller.init()
+            #self.rootNode.InstrumentCombined.m_ircontroller.bwdInit()
 
         return 0

@@ -2,6 +2,8 @@ import pathlib
 import sys
 import os
 
+import pickle
+
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
@@ -20,24 +22,53 @@ class SimRestore(Sofa.Core.Controller):
         Sofa.Core.Controller.__init__(self, *args, **kwargs)
 
         self.root = kwargs["rootNode"]
+        self.data_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Results/save/data.pckl')
         
     def save(self):
+        '''
         position = self.root.InstrumentCombined.DOFs.position.value
-        np.save('./sofagym/envs/CatheterBeam1Instrument/Results/save/position.npy', position)
+        np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/position.npy', position)
 
         velocity = self.root.InstrumentCombined.DOFs.velocity.value
-        np.save('./sofagym/envs/CatheterBeam1Instrument/Results/save/velocity.npy', velocity)
+        np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/velocity.npy', velocity)
 
         derivX = self.root.InstrumentCombined.DOFs.derivX.value
-        np.save('./sofagym/envs/CatheterBeam1Instrument/Results/save/derivX.npy', derivX)
+        np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/derivX.npy', derivX)
 
         xtip = self.root.InstrumentCombined.m_ircontroller.xtip.value
-        np.save('./sofagym/envs/CatheterBeam1Instrument/Results/save/xtip.npy', xtip)
+        np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/xtip.npy', xtip)
         rotation = self.root.InstrumentCombined.m_ircontroller.rotationInstrument.value
-        np.save('./sofagym/envs/CatheterBeam1Instrument/Results/save/rotation.npy', rotation)
+        np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/rotation.npy', rotation)
 
         collis = self.root.InstrumentCombined.Collis.CollisionDOFs.position.value
-        np.save('./sofagym/envs/CatheterBeam1Instrument/Results/save/collision.npy', collis)
+        np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/collision.npy', collis)
+
+        goal_pos = _getGoalPos(self.root).tolist()
+        np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/goal.npy', goal_pos)
+
+        lengthList = self.root.InstrumentCombined.InterpolGuide.lengthList.value
+        np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/lengthList.npy', lengthList)
+
+        #DOF0TransformNode0 = self.root.InstrumentCombined.InterpolGuide.DOF0TransformNode0
+        #print("[DEBUG]      DOF0TransformNode0", type(DOF0TransformNode0), DOF0TransformNode0)
+        #np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/DOF0TransformNode0.npy', DOF0TransformNode0)
+
+        #DOF1TransformNode1 = self.root.InstrumentCombined.InterpolGuide.DOF1TransformNode1.value
+        #np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/DOF1TransformNode1.npy', DOF1TransformNode1)
+
+        curvAbsList = self.root.InstrumentCombined.InterpolGuide.curvAbsList.value
+        np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/curvAbsList.npy', curvAbsList)
+
+        edgeList = self.root.InstrumentCombined.InterpolGuide.edgeList.value
+        np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/edgeList.npy', edgeList)
+        #print("-----------------------------EDGE LIST:",  edgeList)
+
+        bezier_position = self.root.InstrumentCombined.InterpolGuide.slaves.position.value
+        np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/bezier_position.npy', bezier_position)
+
+        bezier_velocity = self.root.InstrumentCombined.InterpolGuide.slaves.velocity.value
+        np.save('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/bezier_velocity.npy', bezier_velocity)
+        '''
 
         '''
         try:
@@ -47,40 +78,164 @@ class SimRestore(Sofa.Core.Controller):
         except:
             print("NO COLLIS")
         '''
+
+
+        position = self.root.InstrumentCombined.DOFs.position.value
+        velocity = self.root.InstrumentCombined.DOFs.velocity.value
+        derivX = self.root.InstrumentCombined.DOFs.derivX.value
+        xtip = self.root.InstrumentCombined.m_ircontroller.xtip.value
+        rotation = self.root.InstrumentCombined.m_ircontroller.rotationInstrument.value
+        indexFirstNode = self.root.InstrumentCombined.m_ircontroller.indexFirstNode.value
+        activatedPointsBuf = self.root.InstrumentCombined.m_ircontroller.activatedPointsBuf.value
+        nodeCurvAbs = self.root.InstrumentCombined.m_ircontroller.nodeCurvAbs.value
+        idInstrumentCurvAbsTable = self.root.InstrumentCombined.m_ircontroller.idInstrumentCurvAbsTable.value
+
+        collis = self.root.InstrumentCombined.Collis.CollisionDOFs.position.value
+        
+        goal_pos = _getGoalPos(self.root).tolist()
+        
+        lengthList = self.root.InstrumentCombined.InterpolGuide.lengthList.value
+        #DOF0TransformNode0 = self.root.InstrumentCombined.InterpolGuide.DOF0TransformNode0
+        #DOF1TransformNode1 = self.root.InstrumentCombined.InterpolGuide.DOF1TransformNode1.value
+        curvAbsList = self.root.InstrumentCombined.InterpolGuide.curvAbsList.value
+        edgeList = self.root.InstrumentCombined.InterpolGuide.edgeList.value
+        bezier_position = self.root.InstrumentCombined.InterpolGuide.slaves.position.value
+        bezier_velocity = self.root.InstrumentCombined.InterpolGuide.slaves.velocity.value
+
+        data = [
+                position,
+                velocity,
+                derivX,
+                xtip,
+                rotation,
+                indexFirstNode,
+                activatedPointsBuf,
+                nodeCurvAbs,
+                idInstrumentCurvAbsTable,
+                collis,
+                goal_pos,
+                lengthList,
+                #DOF0TransformNode0,
+                #DOF1TransformNode1,
+                curvAbsList,
+                edgeList,
+                bezier_position,
+                bezier_velocity,
+                ]
+        
+        with open(self.data_file, 'wb') as f:
+            pickle.dump(data, f)
         
         #print("------------------------SAVED:",  position[-1])
         print("------------------------SAVE")
 
     def load(self):
-        if os.path.exists('./sofagym/envs/CatheterBeam1Instrument/Results/save/position.npy'):
-            loaded_position = np.load('./sofagym/envs/CatheterBeam1Instrument/Results/save/position.npy')
-            loaded_velocity = np.load('./sofagym/envs/CatheterBeam1Instrument/Results/save/velocity.npy')
-            loaded_derivX = np.load('./sofagym/envs/CatheterBeam1Instrument/Results/save/derivX.npy')
-            loaded_xtip = np.load('./sofagym/envs/CatheterBeam1Instrument/Results/save/xtip.npy')
-            loaded_rotation = np.load('./sofagym/envs/CatheterBeam1Instrument/Results/save/rotation.npy')
-            loaded_collis = np.load('./sofagym/envs/CatheterBeam1Instrument/Results/save/collision.npy')
+        '''
+        if os.path.exists('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/position.npy'):
+            loaded_position = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/position.npy')
+            loaded_velocity = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/velocity.npy')
+            loaded_derivX = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/derivX.npy')
+            loaded_xtip = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/xtip.npy')
+            loaded_rotation = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/rotation.npy')
+            loaded_collis = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/collision.npy')
+            loaded_goal = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/goal.npy')
+            loaded_lengthList = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/lengthList.npy')
+            #loaded_DOF0TransformNode0 = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/DOF0TransformNode0.npy')
+            #loaded_DOF1TransformNode1 = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/DOF1TransformNode1.npy')
+            loaded_curvAbsList = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/curvAbsList.npy')
+            loaded_edgeList = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/edgeList.npy')
+            loaded_bezier_position = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/bezier_position.npy')
+            loaded_bezier_velocity = np.load('/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/sofagym/envs/CatheterBeam1Instrument/Results/save/bezier_velocity.npy')
+        '''
+
+        if os.path.exists(self.data_file):
+            with open(self.data_file, 'rb') as f:
+                loaded_position, loaded_velocity, loaded_derivX, loaded_xtip, loaded_rotation, loaded_indexFirstNode, loaded_activatedPointsBuf, loaded_nodeCurvAbs, loaded_idInstrumentCurvAbsTable, loaded_collis, loaded_goal, loaded_lengthList, loaded_curvAbsList, loaded_edgeList, loaded_bezier_position, loaded_bezier_velocity = pickle.load(f)
 
             with self.root.InstrumentCombined.DOFs.position.writeable() as position:
                 position[:] = loaded_position[:]
+            
+            #self.root.InstrumentCombined.DOFs.position.updateIfDirty()
 
             with self.root.InstrumentCombined.DOFs.velocity.writeable() as velocity:
                 velocity[:] = loaded_velocity[:]
+            
+            #self.root.InstrumentCombined.DOFs.velocity.updateIfDirty()
 
             with self.root.InstrumentCombined.DOFs.derivX.writeable() as derivX:
                 derivX[:] = loaded_derivX[:]
+            
+            #self.root.InstrumentCombined.DOFs.derivX.updateIfDirty()
 
             with self.root.InstrumentCombined.m_ircontroller.xtip.writeable() as xtip:
                 xtip[:] = loaded_xtip[:]
+            
+            #self.root.InstrumentCombined.m_ircontroller.xtip.updateIfDirty()
 
             with self.root.InstrumentCombined.m_ircontroller.rotationInstrument.writeable() as rotation:
                 rotation[:] = loaded_rotation[:]
             
+            #self.root.InstrumentCombined.m_ircontroller.rotationInstrument.updateIfDirty()
+            
+            self.root.InstrumentCombined.m_ircontroller.indexFirstNode = loaded_indexFirstNode
+
+            #with self.root.InstrumentCombined.m_ircontroller.activatedPointsBuf.writeable() as activatedPointsBuf:
+            #    activatedPointsBuf = loaded_activatedPointsBuf
+
+            with self.root.InstrumentCombined.m_ircontroller.nodeCurvAbs.writeable() as nodeCurvAbs:
+                nodeCurvAbs = loaded_nodeCurvAbs
+
+            with self.root.InstrumentCombined.m_ircontroller.idInstrumentCurvAbsTable.writeable() as idInstrumentCurvAbsTable:
+                idInstrumentCurvAbsTable = loaded_idInstrumentCurvAbsTable
+
+
             with self.root.InstrumentCombined.Collis.CollisionDOFs.position.writeable() as collis:
                 collis[:] = loaded_collis[:]
+            
+            #self.root.InstrumentCombined.Collis.CollisionDOFs.position.updateIfDirty()
+            
+            with self.root.Goal.GoalMO.position.writeable() as goal:
+                goal[0] = loaded_goal
+
+            #self.root.Goal.GoalMO.position.updateIfDirty()
+
+            with self.root.InstrumentCombined.InterpolGuide.lengthList.writeable() as lengthList:
+                lengthList = loaded_lengthList
+                
+            #self.root.InstrumentCombined.InterpolGuide.lengthList.updateIfDirty()
+
+            #with self.root.InstrumentCombined.InterpolGuide.DOF0TransformNode0.writeable() as DOF0TransformNode0:
+            #    DOF0TransformNode0 = loaded_DOF0TransformNode0
+
+            #with self.root.InstrumentCombined.InterpolGuide.DOF1TransformNode1.writeable() as DOF1TransformNode1:
+            #    DOF1TransformNode1 = loaded_DOF1TransformNode1
+
+            with self.root.InstrumentCombined.InterpolGuide.curvAbsList.writeable() as curvAbsList:
+                curvAbsList = loaded_curvAbsList
+            
+           # self.root.InstrumentCombined.InterpolGuide.curvAbsList.updateIfDirty()
+
+            with self.root.InstrumentCombined.InterpolGuide.edgeList.writeable() as edgeList:
+                edgeList = loaded_edgeList
+                #print("-----------------------------EDGE LIST:",  edgeList)
+            
+            #self.root.InstrumentCombined.InterpolGuide.edgeList.updateIfDirty()
+
+            with self.root.InstrumentCombined.InterpolGuide.slaves.position.writeable() as bezier_position:
+                bezier_position = loaded_bezier_position
+            
+            #self.root.InstrumentCombined.InterpolGuide.slaves.position.updateIfDirty()
+
+            with self.root.InstrumentCombined.InterpolGuide.slaves.velocity.writeable() as bezier_velocity:
+                bezier_velocity = loaded_bezier_velocity
+            
+            #self.root.InstrumentCombined.InterpolGuide.slaves.velocity.updateIfDirty()
+
 
             #print("-------------------------LOADED_POS:", loaded_position[-1])
             #print("-------------------------LOADED:", self.root.InstrumentCombined.DOFs.position.value[-1])
             print("------------------------LOAD")
+            print("[DEBUG]      LOAD", self.root.InstrumentCombined.m_ircontroller.xtip, self.root.InstrumentCombined.m_ircontroller.xtip.value)
 
         obs = np.array(getState(self.root), dtype=np.float32)
 

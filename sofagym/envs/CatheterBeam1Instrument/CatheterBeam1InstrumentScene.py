@@ -115,7 +115,7 @@ def createScene(root,
     root.addObject('FreeMotionAnimationLoop')
     root.addObject('LCPConstraintSolver', mu=0.1, tolerance=1e-10, maxIt=1000, build_lcp=False)
 
-    root.addObject('DefaultPipeline', depth=6, verbose=True, draw=False)
+    #root.addObject('DefaultPipeline', depth=6, verbose=True, draw=False)
     root.addObject('BruteForceBroadPhase')
     root.addObject('BVHNarrowPhase')
     root.addObject('LocalMinDistance', alarmDistance=2, contactDistance=1, angleCone=0.8, coneFactor=0.8)

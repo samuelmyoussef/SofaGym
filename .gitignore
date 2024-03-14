@@ -6,3 +6,6 @@ sofagym/envs/SimpleMaze/Results/
 Results/
 rlberry_data/
 _tests/
+*ini
+*view
+*log
