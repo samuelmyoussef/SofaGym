@@ -284,7 +284,7 @@ class ReloadSim(Sofa.Core.Controller):
     def onKeypressedEvent(self, event):
         key = event['key']
 
-        if key=="A" :
+        if key=="Z" :
             self.rootNode.SimRestore.save()
 
         if key=="M" :

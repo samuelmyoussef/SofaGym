@@ -1,6 +1,9 @@
 import math
 import pathlib
 import sys
+import os
+
+import pickle
 
 import numpy as np
 import Sofa
@@ -13,6 +16,70 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 SofaRuntime.importPlugin("Sofa.Component")
+
+
+class SimRestore(Sofa.Core.Controller):
+    def __init__(self, *args, **kwargs):
+        Sofa.Core.Controller.__init__(self, *args, **kwargs)
+
+        self.root = kwargs["rootNode"]
+        self.data_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Results/save/data.pckl')
+
+        self.cart = self.root.Modeling.Cart
+        self.pole = self.root.Modeling.Pole
+
+    def save(self):
+        cart_position = self.cart.MechanicalObject.position.value
+        cart_velocity = self.cart.MechanicalObject.velocity.value
+        cart_derivX = self.cart.MechanicalObject.derivX.value
+
+        pole_position = self.pole.MechanicalObject.position.value
+        pole_velocity = self.pole.MechanicalObject.velocity.value
+        pole_derivX = self.pole.MechanicalObject.derivX.value
+
+        data = [
+                cart_position,
+                cart_velocity,
+                cart_derivX,
+                pole_position,
+                pole_velocity,
+                pole_derivX,
+                ]
+        
+        with open(self.data_file, 'wb') as f:
+            pickle.dump(data, f)
+
+        #print("------------------------SAVED:",  position[-1])
+        print("------------------------SAVE", data)
+
+    def load(self):
+        if os.path.exists(self.data_file):
+            with open(self.data_file, 'rb') as f:
+                loaded_cart_position, loaded_cart_velocity, loaded_cart_derivX, loaded_pole_position, loaded_pole_velocity, loaded_pole_derivX = pickle.load(f)
+
+            with self.cart.MechanicalObject.position.writeable() as cart_position:
+                cart_position[:] = loaded_cart_position[:]
+
+            with self.cart.MechanicalObject.velocity.writeable() as cart_velocity:
+                cart_velocity[:] = loaded_cart_velocity[:]
+
+            with self.cart.MechanicalObject.derivX.writeable() as cart_derivX:
+                cart_derivX[:] = loaded_cart_derivX[:]
+
+            with self.pole.MechanicalObject.position.writeable() as pole_position:
+                pole_position[:] = loaded_pole_position[:]
+
+            with self.pole.MechanicalObject.velocity.writeable() as pole_velocity:
+                pole_velocity[:] = loaded_pole_velocity[:]
+
+            with self.pole.MechanicalObject.derivX.writeable() as pole_derivX:
+                pole_derivX[:] = loaded_pole_derivX[:]
+
+            print("------------------------LOAD")
+
+        obs = np.array(getState(self.root), dtype=np.float32)
+
+        return obs
 
 
 class StateInitializer(Sofa.Core.Controller):
@@ -305,8 +372,9 @@ def startCmd_CartPole(rootNode, incr, duration):
 
     # Definition of the elements of the animation
     
-    #rootNode.ApplyAction.apply_action(incr)
+    rootNode.ApplyAction.apply_action(incr)
     
+    '''
     def executeAnimation(rootNode, incr, factor):
         rootNode.ApplyAction.apply_action(incr)
 
@@ -317,3 +385,4 @@ def startCmd_CartPole(rootNode, incr, duration):
             params={"rootNode": rootNode,
                     "incr": incr},
             duration=duration, mode="once"))
+    '''

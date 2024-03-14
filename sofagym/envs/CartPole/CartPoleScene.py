@@ -1,14 +1,17 @@
 import pathlib
 import sys
+import os
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
-from CartPoleToolbox import ApplyAction, RewardShaper, StateInitializer
+from CartPoleToolbox import ApplyAction, RewardShaper, StateInitializer, SimRestore
 from sofagym.header import addVisu
 from splib3.animation import AnimationManagerController
 from stlib3.physics.rigid import Floor
 from stlib3.scene import ContactHeader, MainHeader
+
+from sofagym.controllers import ReloadSim, LoadModel
 
 
 def addRigidObject(node, filename, collisionFilename=None, position=[0, 0, 0, 0, 0, 0, 1], scale=[1, 1, 1],
@@ -47,17 +50,46 @@ def addRigidObject(node, filename, collisionFilename=None, position=[0, 0, 0, 0,
 
     return object
 
+path = os.path.dirname(os.path.abspath(__file__))
+
+dim_state = 4
+DEFAULT_CONFIG = {"scene": "CartPole",
+                  "deterministic": True,
+                  "source": [0, 0, 160],
+                  "target": [0, 0, 0],
+                  "goal": False,
+                  "start_node": None,
+                  "scale_factor": 10,
+                  "dt": 0.001,
+                  "timer_limit": 80,
+                  "timeout": 50,
+                  "display_size": (1600, 800),
+                  "render": 0,
+                  "save_data": False,
+                  "save_image": False,
+                  "save_path": path + "/Results" + "/CartPole",
+                  "planning": False,
+                  "discrete": False,
+                  "start_from_history": None,
+                  "python_version": sys.version,
+                  "zFar": 4000,
+                  "time_before_start": 0,
+                  "seed": None,
+                  "nb_actions": 2,
+                  "dim_state": dim_state,
+                  "init_x": 0,
+                  "x_threshold": 100,
+                  "max_move": 24,
+                  "max_angle": 0.418,
+                  "randomize_states": True,
+                  "init_states": [0] * dim_state,
+                  "use_server": False,
+                  "model_dir": "/home/samuelyoussef/Documents/SOFA/Plugins/SofaGym/Results/cartpole-v0/PPO/0_1710259504"
+                  }
+
 
 def createScene(root,
-                config={"source": [0, 0, 160],
-                        "target": [0, 0, 0],
-                        "seed": None,
-                        "zFar":4000,
-                        "init_x": 0,
-                        "max_move": 24,
-                        "max_angle": 0.418,
-                        "dt": 0.01,
-                        "init_states": [0]*4},
+                config=DEFAULT_CONFIG,
                 mode='simu_and_visu'):
     
     # Choose the mode: visualization or computations (or both)
@@ -168,3 +200,7 @@ def createScene(root,
     root.addObject(StateInitializer(name="StateInitializer", rootNode=root, pole_length=pole_length, init_states=config['init_states']))
     root.addObject(RewardShaper(name="Reward", rootNode=root, max_angle=config['max_angle'], pole_length=pole_length))
     root.addObject(ApplyAction(name="ApplyAction", root=root))
+
+    root.addObject(LoadModel(name="Model", rootNode=root, model_dir=config['model_dir']))
+    root.addObject(SimRestore(name="SimRestore", rootNode=root))
+    root.addObject(ReloadSim(name="ReloadSim", rootNode=root))
