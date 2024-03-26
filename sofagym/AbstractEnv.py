@@ -490,6 +490,8 @@ class AbstractEnv(gym.Env):
             self.create_scene(self.root, self.config, mode=mode)
             Sofa.Simulation.init(self.root)
 
+        self.root.SimRestore.load()
+
         # Realise action from history
         if self.config['start_from_history'] is not None and self._startCmd is not None:
             print(">>   Start from history ...")
@@ -556,13 +558,13 @@ class AbstractEnv(gym.Env):
         self._startCmd(self.root, action, self.config["dt"]*(self.config["scale_factor"]-1))
         pos = []
         # Realise scale_factor simulation steps of 0.01 s
-        '''for _ in range(self.config["scale_factor"]):
+        for _ in range(self.config["scale_factor"]):
             Sofa.Simulation.animate(self.root, self.config["dt"])
             
             #if render == 2:
             #    pos.append(self._getPos(self.root))
             #    if self.viewer is not None:
-            #        self.viewer.render_simulation(self.root)'''
+            #        self.viewer.render_simulation(self.root)
 
         if render == 1:
             pos.append(self._getPos(self.root))

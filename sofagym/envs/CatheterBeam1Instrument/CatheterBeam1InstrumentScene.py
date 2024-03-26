@@ -197,9 +197,9 @@ def createScene(root,
     root.addObject(AnimationManagerController(root, name="AnimationManager"))
 
     #root.addObject(RandomActions(name="RandomActions", rootNode=root, env_id="catheter_beam_1_instrument-v0"))
-    root.addObject(ActionsSequence(name="ActionsSequence", rootNode=root, env_id="catheter_beam_1_instrument-v0", actions_sequence=actions_squence))
+    #root.addObject(ActionsSequence(name="ActionsSequence", rootNode=root, env_id="catheter_beam_1_instrument-v0", actions_sequence=actions_squence))
 
     root.addObject(SimRestore(name="SimRestore", rootNode=root))
-    root.addObject(ReloadSim(name="ReloadSim", rootNode=root))
+    #root.addObject(ReloadSim(name="ReloadSim", rootNode=root))
 
     return root

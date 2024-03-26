@@ -426,13 +426,13 @@ def startCmd(root, action, duration):
     target_translation = source[0] + cmd_translation
     target = [target_translation if target_translation > 0 else 0.1, source[1] + cmd_rotation]
     print("---------------------------------------TARGET", source, target_translation, target)
-    #start_cmd(root, root.InstrumentCombined, source, target, duration, controlled_instrument)
+    start_cmd(root, root.InstrumentCombined, source, target, duration, controlled_instrument)
 
-    with root.InstrumentCombined.m_ircontroller.xtip.writeable() as xtip:
+    '''with root.InstrumentCombined.m_ircontroller.xtip.writeable() as xtip:
         xtip[controlled_instrument] = source[0] + (target[0] - source[0])
     if controlled_instrument == 0:
         with root.InstrumentCombined.m_ircontroller.rotationInstrument.writeable() as rotation:
-            rotation[0] = source[1] + (target[1] - source[1])
+            rotation[0] = source[1] + (target[1] - source[1])'''
 
 
 def start_cmd(rootNode, IRC_node, source, target, duration, instrument=0):
