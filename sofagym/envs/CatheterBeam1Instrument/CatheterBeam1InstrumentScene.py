@@ -103,7 +103,8 @@ def createScene(root,
                     "Sofa.Component.Visual",
                     "Sofa.GL.Component.Rendering3D",
                     "Sofa.GL.Component.Shader",
-                    "BeamAdapter"]
+                    "BeamAdapter",
+                    "CGALPlugin"]
     
     plugins = root.addChild('Plugins')
     for name in plugins_list:
@@ -115,7 +116,7 @@ def createScene(root,
     root.addObject('FreeMotionAnimationLoop')
     root.addObject('LCPConstraintSolver', mu=0.1, tolerance=1e-10, maxIt=1000, build_lcp=False)
 
-    #root.addObject('DefaultPipeline', depth=6, verbose=True, draw=False)
+    root.addObject('DefaultPipeline', depth=6, verbose=True, draw=False)
     root.addObject('BruteForceBroadPhase')
     root.addObject('BVHNarrowPhase')
     root.addObject('LocalMinDistance', alarmDistance=2, contactDistance=1, angleCone=0.8, coneFactor=0.8)
@@ -201,5 +202,13 @@ def createScene(root,
 
     root.addObject(SimRestore(name="SimRestore", rootNode=root))
     #root.addObject(ReloadSim(name="ReloadSim", rootNode=root))
+
+    # centerline = collision.addChild("CenterLine", activated="1")
+    # centerline.addObject('MeshSkeletonization', template="Vec3d", name="skel", inputVertices="@meshLoader.position", inputTriangles="@meshLoader.triangles")
+
+    centerline = collision.addChild("Centerline")
+    p_mesh = centerline.addObject('MeshObjLoader', filename=path+"centerline.obj", flipNormals=True, triangulate=True, name='meshLoader')
+    p_mo = centerline.addObject("MechanicalObject", name="dofs", position="@meshLoader.position", showObject=True, showObjectScale=1.0, scale=3, ry=90)
+    #centerline.addObject("RigidMapping", input=collision.DOFs1.getLinkPath(), output='@./', index=3)
 
     return root
