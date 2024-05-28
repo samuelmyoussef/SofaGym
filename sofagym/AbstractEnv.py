@@ -144,6 +144,7 @@ class AbstractEnv(gym.Env):
         self._getReward = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").getReward
         self._startCmd = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").startCmd
         self._getPos = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox").getPos
+        self._getGoalPos = importlib.import_module("sofagym.envs."+self.scene+"."+self.scene+"Toolbox")._getGoalPos
         
         try:
             self.create_scene = importlib.import_module("sofagym.envs."+self.scene+"." + self.scene + "Scene").createScene
@@ -320,7 +321,7 @@ class AbstractEnv(gym.Env):
         self.past_pos.append(self.pos)
 
         obs = np.array(self._getState(self.root), dtype=np.float32)
-        print("-----------------------------_OBS", obs)
+        # print("-----------------------------_OBS", obs)
         done, reward = self._getReward(self.root)
 
         # Avoid long explorations by using a timer.
@@ -490,7 +491,7 @@ class AbstractEnv(gym.Env):
             self.create_scene(self.root, self.config, mode=mode)
             Sofa.Simulation.init(self.root)
 
-        self.root.SimRestore.load()
+        #self.root.SimRestore.load()
 
         # Realise action from history
         if self.config['start_from_history'] is not None and self._startCmd is not None:

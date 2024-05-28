@@ -7,6 +7,7 @@ import pickle
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
+from networkx import current_flow_betweenness_centrality
 import numpy as np
 import Sofa
 import Sofa.Core
@@ -237,7 +238,19 @@ class RewardShaper(Sofa.Core.Controller):
         tip = self.root.InstrumentCombined.DOFs.position[-1][:3]
         current_dist = np.linalg.norm(np.array(tip)-np.array(self.goal_pos))
 
+        # current_dist_norm = self.normalize_reward(current_dist)
+        # print("DEBUG    getREWARD", current_dist_norm, current_dist)
+
         return -current_dist, current_dist
+    
+    def normalize_reward(self, dist):
+        min_dist = -5000
+        max_dist = 0
+        dist_range = max_dist - min_dist
+
+        dist_norm = (dist - abs(min_dist))/ dist_range
+
+        return abs(dist_norm)
 
     def update(self, goal):
         """Update function.
@@ -367,7 +380,7 @@ def getState(root):
     goal_pos = _getGoalPos(root).tolist()
 
     state = xtips + rotations + tip + goal_pos
-    print("-----------------------------------STATE", xtips, rotations, tip, goal_pos)
+    # print("-----------------------------------STATE", xtips, rotations, tip, goal_pos)
 
     return state
 
@@ -397,7 +410,7 @@ def get_ircontroller_state(node, instrument=0):
     """
     Get state (translation, rotation) of th Interventional Radiology Controller
     """
-    print("----------------------------------GET STATE", node.m_ircontroller.xtip.value[instrument])
+    # print("----------------------------------GET STATE", node.m_ircontroller.xtip.value[instrument])
     return [float(node.m_ircontroller.xtip.value[instrument]),
             float(node.m_ircontroller.rotationInstrument.value[instrument])]
 
@@ -421,11 +434,11 @@ def startCmd(root, action, duration):
     """
     scale = int(duration/0.01 + 1)
     controlled_instrument, cmd_translation, cmd_rotation = action_to_command(action, scale)
-    print("----------------------------------CMD", controlled_instrument, cmd_translation, cmd_rotation)
+    # print("----------------------------------CMD", controlled_instrument, cmd_translation, cmd_rotation)
     source = get_ircontroller_state(root.InstrumentCombined, instrument=controlled_instrument)
     target_translation = source[0] + cmd_translation
     target = [target_translation if target_translation > 0 else 0.1, source[1] + cmd_rotation]
-    print("---------------------------------------TARGET", source, target_translation, target)
+    # print("---------------------------------------TARGET", source, target_translation, target)
     start_cmd(root, root.InstrumentCombined, source, target, duration, controlled_instrument)
 
     '''with root.InstrumentCombined.m_ircontroller.xtip.writeable() as xtip:

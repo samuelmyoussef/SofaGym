@@ -141,7 +141,7 @@ def createScene(root,
     instrument.addObject('WireBeamInterpolation', name='InterpolGuide', WireRestShape='@../topoLines_guide/GuideRestShape', radius=0.9, printLog=False)
     instrument.addObject('AdaptiveBeamForceFieldAndMass', name='GuideForceField', interpolation='@InterpolGuide', massDensity=0.00000155)
 
-    instrument.addObject('InterventionalRadiologyController', template='Rigid3d', name='m_ircontroller', printLog=False, xtip=[1, 0, 0], step=3, rotationInstrument=[0, 0, 0],
+    instrument.addObject('InterventionalRadiologyController', template='Rigid3d', name='m_ircontroller', printLog=False, xtip=[0, 0, 0], step=3, rotationInstrument=[0, 0, 0],
                          controlledInstrument=0, startingPos=[0, 0, 0, 0, -0.7071068, 0, 0.7071068], speed=0, instruments='InterpolGuide')
     
     instrument.addObject('LinearSolverConstraintCorrection', printLog=False, wire_optimization=True)

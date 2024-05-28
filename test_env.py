@@ -45,7 +45,8 @@ name = {
         12:'trunk-v0',
         13:'trunkcup-v0',
         14: 'cartpole-v0',
-        15: 'catheter_beam-v0'
+        15: 'catheter_beam-v0',
+        16: 'catheter_beam_1_instrument-v0'
         }
 
 if __name__ == '__main__':
@@ -75,6 +76,9 @@ if __name__ == '__main__':
 
     env.render()
     done = False
+
+    env.load()
+    env.render()
 
     print("Start ...")
     for i in range(episodes):
@@ -113,7 +117,9 @@ if __name__ == '__main__':
         print("[INFO]   >>> Object size:", sys.getsizeof(env))
 
         env.reset()
-
+    
+    env.save_config()
+    env.load_config()
 
     print(">> TOTAL REWARD IS:", tot_reward)
     env.close()

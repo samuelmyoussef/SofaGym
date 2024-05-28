@@ -212,3 +212,35 @@ def express_point(base, point):
     coord = [float(p) for p in coord]
 
     return coord
+
+
+import gym
+from gym.wrappers import NormalizeReward
+import os
+
+def copy_env(env):
+    env_name = env.config["name"]
+    # env.save_step(node, action)
+    
+    new_env = gym.make(env_name, config = env.config)
+    new_env.seed(0)
+    new_env.reset()
+    
+    new_env.load_config()
+    new_env.load_step(env.data_file)
+
+    return new_env
+
+def load_env(env, node):
+    data_file = os.path.join(env.data_path, str(node) + ".pckl")
+    env.load_step(data_file)
+
+    return env
+
+
+def normalize_reward(dist):
+    min_dist = -6000
+    max_dist = 0
+    dist_range = max_dist - min_dist
+    dist_norm = (abs(dist) - abs(min_dist))/ dist_range
+    return abs(dist_norm)
