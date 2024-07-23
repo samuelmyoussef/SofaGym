@@ -312,3 +312,24 @@ class ReloadSim(Sofa.Core.Controller):
             #self.rootNode.InstrumentCombined.m_ircontroller.bwdInit()
 
         return 0
+
+class Djikstra(Sofa.Core.Controller):
+    def __init__(self, *args, **kwargs):
+        Sofa.Core.Controller.__init__(self, *args, **kwargs)
+        
+        self.rootNode = None
+        if kwargs["rootNode"]:
+            self.rootNode = kwargs["rootNode"]
+
+        self.env_id = None
+        if kwargs["env_id"]:
+            self.env_id = kwargs["env_id"]
+
+        self.first_step = True
+        self.eval_env = make_vec_env(self.env_id, n_envs=1, env_kwargs={"root": self.rootNode})
+        self.observation = None
+
+    def onAnimateBeginEvent(self, dt):
+        if self.first_step:
+            self.observation = self.eval_env.reset()
+            self.first_step = False

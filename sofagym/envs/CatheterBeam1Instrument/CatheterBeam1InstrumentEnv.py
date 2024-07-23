@@ -47,7 +47,8 @@ class CatheterBeam1InstrumentEnv(AbstractEnv):
                       "rotation": [140.0, 0.0, 0.0],
                       "translation": [0.0, 0.0, 0.0],
                       "goal": True,
-                      "goalList": [1226, 1663, 1797, 1544, 2233, 2580, 3214],
+                    #   "goalList": [1226, 1544, 1663, 1797, 2233, 2580, 3214],
+                      "goalList": [0, 53, 118, 187, 294, 361, 431],
                       "nb_actions": 4,
                       "dim_state": dim_state,
                       "randomize_states": False,
@@ -154,6 +155,9 @@ class CatheterBeam1InstrumentEnv(AbstractEnv):
         bezier_position = self.root.InstrumentCombined.InterpolGuide.slaves.position.value
         bezier_velocity = self.root.InstrumentCombined.InterpolGuide.slaves.velocity.value
         goal_pos = self._getGoalPos(self.root).tolist()
+        prev_dist = self.root.Reward.prev_dist
+        prev_ratio = self.root.Reward.prev_ratio
+        path_pos = self.root.Reward.path_pos
 
         data = [
                 position,
@@ -173,7 +177,10 @@ class CatheterBeam1InstrumentEnv(AbstractEnv):
                 bezier_position,
                 bezier_velocity,
                 free_position,
-                free_velocity
+                free_velocity,
+                prev_dist,
+                prev_ratio,
+                path_pos
                 ]
         
         self.data_file = os.path.join(self.data_path, str(node) + ".pckl")
@@ -183,7 +190,7 @@ class CatheterBeam1InstrumentEnv(AbstractEnv):
     def load_step(self, data_file):
         if os.path.exists(data_file):
             with open(data_file, 'rb') as f:
-                loaded_position, loaded_velocity, loaded_derivX, loaded_xtip, loaded_rotation, loaded_indexFirstNode, loaded_activatedPointsBuf, loaded_nodeCurvAbs, loaded_idInstrumentCurvAbsTable, loaded_collis, loaded_goal, loaded_lengthList, loaded_curvAbsList, loaded_edgeList, loaded_bezier_position, loaded_bezier_velocity, loaded_free_position, loaded_free_velocity = pickle.load(f)
+                loaded_position, loaded_velocity, loaded_derivX, loaded_xtip, loaded_rotation, loaded_indexFirstNode, loaded_activatedPointsBuf, loaded_nodeCurvAbs, loaded_idInstrumentCurvAbsTable, loaded_collis, loaded_goal, loaded_lengthList, loaded_curvAbsList, loaded_edgeList, loaded_bezier_position, loaded_bezier_velocity, loaded_free_position, loaded_free_velocity, loaded_prev_dist, loaded_prev_ratio, loaded_path_pos = pickle.load(f)
             
             self.root.InstrumentCombined.DOFs.position.value = loaded_position
             self.root.InstrumentCombined.DOFs.velocity.value = loaded_velocity
@@ -203,6 +210,10 @@ class CatheterBeam1InstrumentEnv(AbstractEnv):
             
             with self.root.Goal.GoalMO.position.writeable() as goal:
                 goal[0] = loaded_goal
+
+            self.root.Reward.prev_dist = loaded_prev_dist
+            self.root.Reward.prev_ratio = loaded_prev_ratio
+            self.root.Reward.path_pos = loaded_path_pos
 
         obs = np.array(self._getState(self.root), dtype=np.float32)
 

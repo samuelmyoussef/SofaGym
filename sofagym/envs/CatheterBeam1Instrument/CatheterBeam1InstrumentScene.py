@@ -6,10 +6,10 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute())+"/../")
 sys.path.insert(0, str(pathlib.Path(__file__).parent.absolute()))
 
 import numpy as np
-from CatheterBeam1InstrumentToolbox import GoalSetter, RewardShaper, SimRestore
+from CatheterBeam1InstrumentToolbox import GoalSetter, RewardShaper
 from splib3.animation import AnimationManagerController
 
-from sofagym.controllers import RandomActions, ActionsSequence, ReloadSim
+from sofagym.controllers import RandomActions, ActionsSequence, ReloadSim, Djikstra
 
 path = dirname(abspath(__file__)) + '/mesh/'
 
@@ -180,12 +180,29 @@ def createScene(root,
     collision.addObject('PointCollisionModel', simulated=False, moving=False)
     collision.addObject('OglModel', name='Visual', src='@meshLoader', color=[1, 0, 0, 0.1], scale=3, ry=90)
 
+    # centerline = collision.addChild("CenterLine", activated="1")
+    # centerline.addObject('MeshSkeletonization', template="Vec3d", name="skel", inputVertices="@meshLoader.position", inputTriangles="@meshLoader.triangles")
+
+    centerline = collision.addChild("Centerline")
+    p_mesh = centerline.addObject('MeshObjLoader', filename=path+"centerline.obj", flipNormals=True, triangulate=True, name='meshLoader')
+    p_mo = centerline.addObject("MechanicalObject", name="dofs", position="@meshLoader.position", showObject=False, showObjectScale=1.0, scale=3, ry=90)
+    #centerline.addObject("RigidMapping", input=collision.DOFs1.getLinkPath(), output='@./', index=3)
+
+    shortest_path = root.addChild("Dijkstra")
+    shortest_path.addObject('VisualStyle', displayFlags="showCollisionModels")
+    shortest_path_mo = shortest_path.addObject('MechanicalObject', name='PathMO', showObject=True, drawMode="1", showObjectScale=2.0,
+                         showColor=[0, 1, 0, 0.5], position=[0.0, 0.0, 0.0])
+
     # Goal
     goal = add_goal_node(root)
 
+    tip_mo = root.InstrumentCombined.DOFs
+
     # SofaGym Env Toolbox
-    root.addObject(RewardShaper(name="Reward", rootNode=root, goalPos=config['goalPos']))
+    root.addObject(RewardShaper(name="Reward", rootNode=root, goal=goal, goalPos=config['goalPos'], path_mesh=p_mesh, path_mo=p_mo, tip_mo=tip_mo, shortest_path_mo=shortest_path_mo))
     root.addObject(GoalSetter(name="GoalSetter", rootNode=root, goal=goal, goalPos=config['goalPos']))
+
+    # root.addObject(Djikstra(name="DjikstraController", rootNode=root, env_id="catheter_beam_1_instrument-v0"))
 
     if visu:
         source = config["source"]
@@ -197,18 +214,9 @@ def createScene(root,
 
     root.addObject(AnimationManagerController(root, name="AnimationManager"))
 
-    #root.addObject(RandomActions(name="RandomActions", rootNode=root, env_id="catheter_beam_1_instrument-v0"))
-    #root.addObject(ActionsSequence(name="ActionsSequence", rootNode=root, env_id="catheter_beam_1_instrument-v0", actions_sequence=actions_squence))
-
-    root.addObject(SimRestore(name="SimRestore", rootNode=root))
-    #root.addObject(ReloadSim(name="ReloadSim", rootNode=root))
-
-    # centerline = collision.addChild("CenterLine", activated="1")
-    # centerline.addObject('MeshSkeletonization', template="Vec3d", name="skel", inputVertices="@meshLoader.position", inputTriangles="@meshLoader.triangles")
-
-    centerline = collision.addChild("Centerline")
-    p_mesh = centerline.addObject('MeshObjLoader', filename=path+"centerline.obj", flipNormals=True, triangulate=True, name='meshLoader')
-    p_mo = centerline.addObject("MechanicalObject", name="dofs", position="@meshLoader.position", showObject=True, showObjectScale=1.0, scale=3, ry=90)
-    #centerline.addObject("RigidMapping", input=collision.DOFs1.getLinkPath(), output='@./', index=3)
+    # root.addObject(RandomActions(name="RandomActions", rootNode=root, env_id="catheter_beam_1_instrument-v0"))
+    # root.addObject(ActionsSequence(name="ActionsSequence", rootNode=root, env_id="catheter_beam_1_instrument-v0", actions_sequence=actions_squence))
+    # root.addObject(SimRestore(name="SimRestore", rootNode=root))
+    # root.addObject(ReloadSim(name="ReloadSim", rootNode=root))
 
     return root
