@@ -192,6 +192,11 @@ def createScene(root,
     shortest_path.addObject('VisualStyle', displayFlags="showCollisionModels")
     shortest_path_mo = shortest_path.addObject('MechanicalObject', name='PathMO', showObject=True, drawMode="1", showObjectScale=2.0,
                          showColor=[0, 1, 0, 0.5], position=[0.0, 0.0, 0.0])
+    
+    projection = root.addChild("Projection")
+    projection.addObject('VisualStyle', displayFlags="showCollisionModels")
+    projection_mo = projection.addObject('MechanicalObject', name='ProjMO', showObject=True, drawMode="1", showObjectScale=2.0,
+                         showColor=[1, 0, 0, 0.5], position=[0.0, 0.0, 0.0])
 
     # Goal
     goal = add_goal_node(root)
@@ -199,7 +204,7 @@ def createScene(root,
     tip_mo = root.InstrumentCombined.DOFs
 
     # SofaGym Env Toolbox
-    root.addObject(RewardShaper(name="Reward", rootNode=root, goal=goal, goalPos=config['goalPos'], path_mesh=p_mesh, path_mo=p_mo, tip_mo=tip_mo, shortest_path_mo=shortest_path_mo))
+    root.addObject(RewardShaper(name="Reward", rootNode=root, goal=goal, goalPos=config['goalPos'], path_mesh=p_mesh, path_mo=p_mo, tip_mo=tip_mo, shortest_path_mo=shortest_path_mo, projection_mo=projection_mo))
     root.addObject(GoalSetter(name="GoalSetter", rootNode=root, goal=goal, goalPos=config['goalPos']))
 
     # root.addObject(Djikstra(name="DjikstraController", rootNode=root, env_id="catheter_beam_1_instrument-v0"))

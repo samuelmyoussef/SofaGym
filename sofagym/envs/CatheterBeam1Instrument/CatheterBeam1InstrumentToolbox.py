@@ -307,8 +307,15 @@ class RewardShaper(Sofa.Core.Controller):
         if kwargs["shortest_path_mo"]:
             self.shortest_path_mo = kwargs["shortest_path_mo"]
 
+        self.projection_mo = None
+        if kwargs["projection_mo"]:
+            self.projection_mo = kwargs["projection_mo"]
+
         self.prev_ratio = 0.0
         self.prev_dist = None
+
+        self.prev_start = None
+        self.proj = None
 
     def getReward(self):
         """Compute the reward.
@@ -330,15 +337,41 @@ class RewardShaper(Sofa.Core.Controller):
 
         # return -current_dist, current_dist
     
-        pos = self.tip_mo.position[-1][:3]
-        dist_to_path = [{'id': k, 'dist': np.linalg.norm(pos[1:] - path_point[1:])}
-                        for k, path_point in enumerate(self.path_pos)]
-        sorted_dist = sorted(dist_to_path, key=lambda item: item['dist'])
-        if len(sorted_dist) < 1:
-            return 0.0
-        closest_point = sorted_dist[0]["id"]
+        # pos = self.tip_mo.position[-1][:3]
+        # dist_to_path = [{'id': k, 'dist': np.linalg.norm(pos[:] - path_point[:])}
+        #                 for k, path_point in enumerate(self.path_pos)]
+        # sorted_dist = sorted(dist_to_path, key=lambda item: item['dist'])
+        # if len(sorted_dist) < 1:
+        #     return 0.0
+        # closest_points = [sorted_dist[0]["id"], sorted_dist[1]["id"]]
 
-        new_dist = dist_to_path[closest_point]['dist']
+        # print("DEBUG clo", closest_points)
+
+        pos = np.asarray(self.tip_mo.position[-1][:3])
+        b, i = self.update_path_dist(pos)
+        a = self.prev_start
+
+        self.proj = self.calculate_tip_projection(a, b, pos)
+
+        # a = np.asarray(self.path_pos[closest_points[0]])
+        # b = np.asarray(self.path_pos[closest_points[1]])
+
+        # with self.shortest_path_mo.position.writeable() as path_mo:
+        #     path_mo[0] = self.path_pos[closest_points[1]][:]
+
+        # ap = pos - a
+        # ab = b - a
+
+        # proj = a + np.dot(ap, ab)/np.dot(ab,ab) * ab
+
+        # with self.projection_mo.position.writeable() as proj_mo:
+        #     proj_mo[0] = proj[:]
+
+        # print("DEBUG   proj", a, b, ap, ab, proj)
+
+        new_dist = np.linalg.norm(self.proj - b)
+
+        print(f"DEBUG   proj: {self.proj}   b: {b}  dist: {new_dist}")
 
         goal = self.root.Goal.GoalMO.position[0]
         goal_dist = np.linalg.norm(pos - goal)
@@ -348,25 +381,34 @@ class RewardShaper(Sofa.Core.Controller):
         ratio = max(((self.prev_dist - new_dist) / self.prev_dist), 0)
 
         sigmoid = 1 / (1 + math.exp(-ratio))
-        
+
+        self.prev_dist = new_dist
+
         if new_dist <= 1:
-            new_closest_point = sorted_dist[1]["id"]
-            
-            self.prev_dist = dist_to_path[new_closest_point]["dist"]
-            self.prev_ratio = 0.0
+            self.prev_start = pos
+            self.path_pos.pop(i)
 
-            with self.shortest_path_mo.position.writeable() as path_mo:
-                path_mo[0] = self.path_pos[new_closest_point][:]
+            b, i = self.update_path_dist(pos)
 
-            print("Checkpoint Reached")
-            print("DEBUG    current target", self.path_pos[new_closest_point][:])
-
-            self.path_pos.pop(closest_point)
         
-        # elif ratio > self.prev_ratio:
-            # self.prev_ratio = ratio
-        else:
-            self.prev_dist = new_dist
+        # if new_dist <= 1:
+        #     new_closest_point = sorted_dist[1]["id"]
+            
+        #     self.prev_dist = dist_to_path[new_closest_point]["dist"]
+        #     self.prev_ratio = 0.0
+
+        #     with self.shortest_path_mo.position.writeable() as path_mo:
+        #         path_mo[0] = self.path_pos[new_closest_point][:]
+
+        #     print("Checkpoint Reached")
+        #     print("DEBUG    current target", self.path_pos[new_closest_point][:])
+
+        #     self.path_pos.pop(closest_point)
+        
+        # # elif ratio > self.prev_ratio:
+        #     # self.prev_ratio = ratio
+        # else:
+        #     self.prev_dist = new_dist
 
         return sigmoid, None
     
@@ -429,16 +471,55 @@ class RewardShaper(Sofa.Core.Controller):
 
         self.shortest_path_mo.position.value = self.path_pos
 
-        pos = self.tip_mo.position[-1][:3]
+        # pos = self.tip_mo.position[-1][:3]
+        # dist_to_path = [{'id': k, 'dist': np.linalg.norm(pos - path_point)}
+        #                 for k, path_point in enumerate(self.path_pos)]
+        # sorted_dist = sorted(dist_to_path, key=lambda item: item['dist'])
+        # if len(sorted_dist) < 1:
+        #     return 0.0
+        # closest_point = sorted_dist[0]["id"]
+        
+        # self.prev_dist = dist_to_path[closest_point]["dist"]
+        # self.prev_ratio = 0.0
+
+        pos = np.asarray(self.tip_mo.position[-1][:3])
+        a = pos
+        b, i = self.update_path_dist(pos)
+
+        self.proj = self.calculate_tip_projection(a, b, pos)
+        self.prev_start = a
+
+        self.prev_dist = np.linalg.norm(self.proj - b)
+
+    def update_path_dist(self, pos):
+        # pos = self.tip_mo.position[-1][:3]
+        
         dist_to_path = [{'id': k, 'dist': np.linalg.norm(pos - path_point)}
                         for k, path_point in enumerate(self.path_pos)]
         sorted_dist = sorted(dist_to_path, key=lambda item: item['dist'])
         if len(sorted_dist) < 1:
             return 0.0
+        
         closest_point = sorted_dist[0]["id"]
 
         self.prev_dist = dist_to_path[closest_point]["dist"]
-        self.prev_ratio = 0.0
+
+        with self.shortest_path_mo.position.writeable() as path_mo:
+            path_mo[0] = self.path_pos[closest_point][:]
+
+        return np.asarray(self.path_pos[closest_point]), closest_point
+
+
+    def calculate_tip_projection(self, a, b, p):
+        ap = p - a
+        ab = b - a
+
+        proj = a + np.dot(ap, ab)/np.dot(ab,ab) * ab
+
+        with self.projection_mo.position.writeable() as proj_mo:
+            proj_mo[0] = proj[:]
+        
+        return proj
 
 
 class GoalSetter(Sofa.Core.Controller):

@@ -507,21 +507,17 @@ class AbstractEnv(gym.Env):
 
         if self.config["randomize_states"]:
             self.root.StateInitializer.init_state(self.config["init_states"])
-            self.root.StateInitializer.init_state(self.config["init_states"])
 
         if 'time_before_start' in self.config:
             print(">>   Time before start:", self.config["time_before_start"], "steps. Initialization ...")
             for _ in range(self.config["time_before_start"]):
-                Sofa.Simulation.animate(self.root, self.config["dt"])
                 Sofa.Simulation.animate(self.root, self.config["dt"])
             print(">>   ... Done.")
             
         # Update Reward and GoalSetter
         if self.config["goal"]:
             self.root.GoalSetter.update(self.goal)
-            self.root.GoalSetter.update(self.goal)
         
-        self.root.Reward.update(self.goal)
         self.root.Reward.update(self.goal)
 
     def step_simulation(self, action):
