@@ -160,9 +160,11 @@ To change the hyperparamters of the RL algorithm and the agent training and eval
 |Image|Name|Description|Status|
 |----------|:-------------|:-------------|:-------------|
 |<img src="images/bubblemotion-v0.png" width="250"/>|[BubbleMotion](sofagym/envs/BubbleMotion/) bubblemotion-v0| |OK|
+|<img src="images/cartpole-v0.png" width="250"/>|[CartPole](sofagym/envs/CartPole/) cartpole-v0| The CartPole environment is based on the [same environment](https://gymnasium.farama.org/environments/classic_control/cart_pole/) found in Gymnasium. It is based on the classical control problem where the goal is to balance the pole upright by moving the cart left and right. The cartstem example is the soft analogue of this environment.|OK|
 |<img src="images/cartstem-v0.png" width="250"/>|[CartStem](sofagym/envs/CartStem/) cartstem-v0| |OK|
 |<img src="images/cartstemcontact-v0.png" width="250"/>|[CartStemContact](sofagym/envs/CartStemContact/) cartstemcontact-v0| |OK|
-| |[CatchTheObject](sofagym/envs/CatchTheObject/) catchtheobject-v0| |OK|
+|<img src="images/catchtheobject-v0.png" width="250"/>|[CatchTheObject](sofagym/envs/CatchTheObject/) catchtheobject-v0| |OK|
+|<img src="images/catheter_beam-v0.png" width="250"/>|[CatheterBeam](sofagym/envs/CatheterBeam/) catheter_beam-v0| The CatheterBeam environment is a catheter navigation environment with three concentric tube instruments.|OK|
 |<img src="images/concentrictuberobot-v0.png" width="250"/>|[ConcentricTubeRobot](sofagym/envs/CTR/) concentrictuberobot-v0| |OK|
 |<img src="images/diamondrobot-v0.png" width="250"/>|[DiamondRobot](sofagym/envs/Diamond/) diamondrobot-v0| |OK|
 |<img src="images/gripper-v0.png" width="250"/>|[Gripper](sofagym/envs/Gripper/) gripper-v0| The objective is to grasp a cube and bring it to a certain height.  The closer the cube is to the target, the greater the reward.|OK|
@@ -172,7 +174,6 @@ To change the hyperparamters of the RL algorithm and the agent training and eval
 |<img src="images/stempendulum-v0.png" width="250"/>|[StemPendulum](sofagym/envs/StemPendulum/) stempendulum-v0| |OK|
 |<img src="images/trunk-v0.png" width="250"/>|[Trunk](sofagym/envs/Trunk/) trunk-v0| The Trunk environment offers two scenarios.  Both are based on the trunk robot.  The first is to bring the trunk’s tip to a certain position. The second scenario is to manipulate a cup using the trunk to get the cup’s center of gravity in a predefined position. The  Trunk  is  controlled  by  eight  cables  that can be contracted or extended by one unit.  There are therefore 16 possible actions. The action space presented here is discrete but could easily be ex-tended to become continuous.|OK |
 |<img src="images/trunkcup-v0.png" width="250"/>|[TrunkCup](sofagym/envs/TrunkCup/) trunkcup-v0| |OK|
-|<img src="images/cartpole-v0.png" width="250"/>|[CartPole](sofagym/envs/CartPole/) cartpole-v0| The CartPole environment is based on the [same environment](https://gymnasium.farama.org/environments/classic_control/cart_pole/) found in Gymnasium. It is based on the classical control problem where the goal is to balance the pole upright by moving the cart left and right. The cartstem example is the soft analogue of this environment.|OK|
 
 
 
@@ -202,6 +203,12 @@ A server takes care of distributing the calculations between several clients. Ea
 A cleaning system is used to close clients that are no longer used. This makes it possible to avoid having an exponential number of open clients.
 
 When it is not necessary to have access to the different states of the environment, i.e. when the actions are used sequentially, only one client is open and performs the calculations sequentially.
+
+the server/worker architecture can be used by setting the `use_server` boolean flag in the default configs of the environment to `True`.
+
+### Normal Architecture
+
+The default architecture (`use_server=False`) of the environment does not use the server/worker architecture to avoid the slower performance due to the communication between the server and the client whenever it is not needed.
 
 ### Vectorized Environment
 
