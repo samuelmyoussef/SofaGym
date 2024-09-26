@@ -202,9 +202,11 @@ class applyAction(Sofa.Core.Controller):
 
     def _move(self, incr):
         cartForceField = self.cartstem.cart.ConstantForceField
-        force = cartForceField.force.value.tolist()
-        force[0] = incr
-        cartForceField.force.value = np.array(force)
+        force = cartForceField.forces.value.tolist()
+        if not force:
+            force = [[0, 0.0, 0.0, 0.0, 0.0, 0.0]]
+        force[0][0] = incr
+        cartForceField.forces.value = np.array(force)
 
     def compute_action(self, actions, nb_step):
         if actions == 0:
