@@ -33,9 +33,8 @@ def addHeader(rootNode, alarmDistance=2.0, contactDistance=0.5, tolerance=1e-6, 
                                                                         'SofaDeformable '
                                                                         'SofaGeneralEngine '
                                                                         'SofaImplicitOdeSolver '
-                                                                        'SofaMeshCollision '
                                                                         'SofaOpenglVisual '
-                                                                        'CosseratPlugin '
+                                                                        'Cosserat '
                                                                         'SofaLoader '
                                                                         'SofaGeneralLoader')
     rootNode.addObject('BackgroundSetting', color=[1, 1, 1, 1])
