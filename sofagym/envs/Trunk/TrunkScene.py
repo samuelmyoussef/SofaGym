@@ -208,7 +208,7 @@ def createScene(rootNode, config={"source": [-600.0, -25, 100],
         simulation.addObject('EulerImplicitSolver', name='odesolver', firstOrder="0", rayleighMass="0.1",
                              rayleighStiffness="0.1")
         simulation.addObject('EigenSimplicialLDLT',template='CompressedRowSparseMatrixd', name='linearSolver')
-        simulation.addObject('GenericConstraintCorrection', solverName="@linearSolver")
+        simulation.addObject('GenericConstraintCorrection', linearSolver="@linearSolver")
 
     trunk = Trunk(simulation, inverseMode=False)
     rootNode.trunk = trunk
