@@ -34,7 +34,7 @@ PPO:
   fit_kwargs:
     total_timesteps: 100000
     max_episode_steps: null
-    eval_freq: 8000
+    eval_freq: 10000
     n_eval_episodes: 5
     save_freq: 10000
     video_length: 200
