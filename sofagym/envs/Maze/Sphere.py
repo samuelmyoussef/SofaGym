@@ -21,6 +21,11 @@ class Sphere(Sofa.Prefab):
         self.addObject("UniformMass", totalMass=1e-4)
         self.addObject('SphereCollisionModel', radius=2)
 
+        #visu = self.addChild('Visu')
+        #visu.addObject('MeshOBJLoader', name='loader', filename="mesh/ball.obj", scale3d=[1, 1, 1])
+        #visu.addObject('OglModel', src='@loader', name="VisualModel", color="blue")
+        #visu.addObject('IdentityMapping', input="@../sphere_mo", output="@VisualModel")
+
 
 def createScene(rootNode):
     rootNode.gravity = [0., -9810., 0.]
